@@ -436,14 +436,13 @@ class ActiveMQConfig {
       $mqConfig = [ActiveMQConfig]::new()
       $mqConfig.BrokerName="ActiveMQ-LB-61719"
       $mqConfig.BrokerPort=61719
-      $mqConfBroker="D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-61719"
+      $mqConfig.BrokerPath="D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-61716"
       $mqConfig.HubBrokerUri="static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
       $mqConfig.TemplatePath= "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-template"
 
       # Logger DEBUG($mqConfig)
     
       PS C:\> CreateMqConfig $mqConfig
-
 #>
 function CreateMqConfig {
     [CmdletBinding()]
@@ -492,8 +491,25 @@ function CreateMqConfig {
    
 }
 
+<#
+    .DESCRIPTION
+       初始化 ActiveMQ 配置信息
 
+    .PARAMETER clearData
+        是否清除 data 数据
+        
+    .EXAMPLE
+      PS C:\> IniteMqConfigs -clearData $false
+
+     .EXAMPLE
+      PS C:\> IniteMqConfigs -clearData $true
+#>
 function IniteMqConfigs {
+    [CmdletBinding()]
+    param(
+        # ActiveMQ 配置信息
+        [Boolean] $clearData=$false
+    )
     $mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusBroker = "D:\Tools\MQ\ActiveMQ-Cluster"
     $templatePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-template"
@@ -507,14 +523,14 @@ function IniteMqConfigs {
     $mqConfigs[0] = [ActiveMQConfig]::new()
     $mqConfigs[0].BrokerName = "ActiveMQ-LB-Hub-61711"
     $mqConfigs[0].BrokerPort = 61711
-    $mqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\LB\ActiveMQ-LB-Hub-61711")
+    $mqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61711")
     $mqConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61712)"
     $mqConfigs[0].TemplatePath = $templatePath
 
     $mqConfigs[1] = [ActiveMQConfig]::new()
     $mqConfigs[1].BrokerName = "ActiveMQ-LB-Hub-61712"
     $mqConfigs[1].BrokerPort = 61712
-    $mqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\LB\ActiveMQ-LB-Hub-61712")
+    $mqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61712")
     $mqConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61711)"
     $mqConfigs[1].TemplatePath = $templatePath
     #endregion 集线 Broker（给生产者使用）
@@ -524,32 +540,40 @@ function IniteMqConfigs {
     $mqConfigs[2] = [ActiveMQConfig]::new()
     $mqConfigs[2].BrokerName = "ActiveMQ-LB-61716"
     $mqConfigs[2].BrokerPort = 61716
-    $mqConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\LB\ActiveMQ-LB-61716")
+    $mqConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-61716")
     $mqConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
     $mqConfigs[2].TemplatePath = $templatePath
 
     $mqConfigs[3] = [ActiveMQConfig]::new()
     $mqConfigs[3].BrokerName = "ActiveMQ-LB-61717"
     $mqConfigs[3].BrokerPort = 61717
-    $mqConfigs[3].BrokerPath= -Join ($mqClusterSourcePath, "\LB\ActiveMQ-LB-61717")
+    $mqConfigs[3].BrokerPath= -Join ($mqClusterSourcePath, "\LB\apache-activemq-61717")
     $mqConfigs[3].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
     $mqConfigs[3].TemplatePath = $templatePath
 
     $mqConfigs[4] = [ActiveMQConfig]::new()
     $mqConfigs[4].BrokerName = "ActiveMQ-LB-61718"
     $mqConfigs[4].BrokerPort = 61718
-    $mqConfigs[4].BrokerPath= -Join ($mqClusterSourcePath, "\LB\ActiveMQ-LB-61718")
+    $mqConfigs[4].BrokerPath= -Join ($mqClusterSourcePath, "\LB\apache-activemq-61718")
     $mqConfigs[4].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
     $mqConfigs[4].TemplatePath = $templatePath
 
     #endregion
 
     foreach ($config in $mqConfigs) {
+        # 根据模板创建配置信息
         CreateMqConfig $config 
+
+        # 复制配置信息
         CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath,$mqClusBroker)
+
+        if($clearData -eq $true){
+            #清除 data 数据
+            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath,$mqClusBroker)
+        }
     }  
 
    
 }
 
-IniteMqConfigs
+IniteMqConfigs -clearData $true
