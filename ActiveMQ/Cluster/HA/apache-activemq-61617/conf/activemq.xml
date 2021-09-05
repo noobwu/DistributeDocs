@@ -107,7 +107,7 @@
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook"/>
 		</shutdownHooks>
 		<networkConnectors>
-			<networkConnector uri="static:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)" />
+			<networkConnector uri="masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)" />
 		</networkConnectors>
 	</broker>
 	<!--

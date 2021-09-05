@@ -795,7 +795,7 @@ function IniteMqConfigsForZookeeper {
     $mqConfigs[0].BrokerName = "ActiveMQ-HA-61616"
     $mqConfigs[0].BrokerPort = 61616
     $mqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61616")
-    $mqConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
+    $mqConfigs[0].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
     $mqConfigs[0].JettyPort = 8166
     $mqConfigs[0].TemplatePath = $templatePath
 
@@ -803,7 +803,7 @@ function IniteMqConfigsForZookeeper {
     $mqConfigs[1].BrokerName = "ActiveMQ-HA-61617"
     $mqConfigs[1].BrokerPort = 61617
     $mqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61617")
-    $mqConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
+    $mqConfigs[1].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
     $mqConfigs[1].JettyPort = 8167
     $mqConfigs[1].TemplatePath = $templatePath
 
@@ -811,7 +811,7 @@ function IniteMqConfigsForZookeeper {
     $mqConfigs[2].BrokerName = "ActiveMQ-HA-61618"
     $mqConfigs[2].BrokerPort = 61618
     $mqConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61618")
-    $mqConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
+    $mqConfigs[2].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
     $mqConfigs[2].JettyPort = 8168
     $mqConfigs[2].TemplatePath = $templatePath
 
