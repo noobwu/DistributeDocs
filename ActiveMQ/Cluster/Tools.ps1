@@ -421,7 +421,7 @@ class ActiveMQConfig {
     [int]$JettyPort
 
     [string]ToString() {
-        return ("TemplatePath:{0},BrokerPath:{1},BrokerName:{2},BrokerPort:{3},HubBrokerUri:{4},JettyPort:{5}" -f $this.TemplatePath, $this.BrokerPath, $this.BrokerName, $this.BrokerPort, $this.HubBrokerUri,$this.JettyPort)
+        return ("TemplatePath:{0},BrokerPath:{1},BrokerName:{2},BrokerPort:{3},HubBrokerUri:{4},JettyPort:{5}" -f $this.TemplatePath, $this.BrokerPath, $this.BrokerName, $this.BrokerPort, $this.HubBrokerUri, $this.JettyPort)
     }
 }
 
@@ -496,7 +496,6 @@ function CreateMqConfig {
             -replace '{{JettyPort}}', $config.JettyPort `
     } | Set-Content $destJettyConfigPath
 
-   
 }
 
 <#
@@ -519,7 +518,7 @@ function IniteMqConfigs {
         [Boolean] $clearData = $false
     )
     $mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
-    $mqClusBroker = "D:\Tools\MQ\ActiveMQ-Cluster"
+    $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
     $templatePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-template"
     $brokerCount = 5;
 
@@ -578,11 +577,11 @@ function IniteMqConfigs {
         CreateMqConfig $config 
 
         # 复制配置信息
-        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusBroker)
+        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
         if ($clearData -eq $true) {
             #清除 data 数据
-            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusBroker)
+            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
         }
     }  
 
@@ -590,4 +589,242 @@ function IniteMqConfigs {
    
 }
 
-IniteMqConfigs -clearData $true
+#IniteMqConfigs -clearData $true
+
+
+<# 
+    ActiveMQ  配置信息(Zookeeper配置主)
+ #>
+class ZookeeperConfig:ActiveMQConfig {
+    # 复本数量 2
+    [int]$Replicas
+
+    # 绑定端口 61626
+    [int]$BindPort
+
+    #Zookeeper 配置信息 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
+    [string]$ZkAddress
+
+    #Zookeeper 密码 ""
+    [string]$ZkPassword
+
+    #BrockerHostName Broker服务器名称
+    [string]$BrockerHostName
+
+    #Sync   local_disk
+    [string]$Sync
+
+    #ZkPath   /activemq/ha/leveldb-stores
+    [string]$ZkPath
+}
+
+<#
+    .DESCRIPTION
+       根据模板文件创建 ActiveMQ 配置文件
+
+    .PARAMETER config
+        配置信息
+        
+    .EXAMPLE
+      $mqConfig = [ZookeeperActiveMQConfig]::new()
+      $mqConfig.BrokerName="ActiveMQ-LB-61719"
+      $mqConfig.BrokerPort=61719
+      $mqConfig.BrokerPath="D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-61716"
+      $mqConfig.JettyPort=8171
+      $mqConfig.HubBrokerUri="static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
+      $mqConfig.TemplatePath= "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-template"
+
+      # Logger DEBUG($mqConfig)
+    
+      PS C:\> CreateMqConfigForZookeepper $mqConfig
+#>
+function CreateMqConfigForZookeepper {
+    [CmdletBinding()]
+    param(
+        # ActiveMQ 配置信息
+        [ZookeeperConfig] $config
+    )
+    if ($null -eq $config) {
+        Logger ERROR("ActiveMQ 配置信息不能为空")
+        return;
+    }
+
+    # Logger DEBUG($config)
+    
+
+    CreateDir ( -Join ($config.BrokerPath, '\bin\win64') )
+    CreateDir ( -Join ($config.BrokerPath, '\conf') )
+
+    $srcWrapperConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "bin\win64\wrapper.conf"
+    $destWrapperConfigPath = Join-Path -Path $config.BrokerPath -ChildPath "bin\win64\wrapper.conf"
+
+    (Get-Content $srcWrapperConfigPath) | ForEach-Object {
+        $_ -replace '{{BrokerName}}', $config.BrokerName `
+    } | Set-Content $destWrapperConfigPath
+
+
+    $srcActiveMQConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\activemq.xml"
+    $destActiveMQConfigPath = Join-Path -Path $config.BrokerPath -ChildPath "conf\activemq.xml"
+
+    (Get-Content $srcActiveMQConfigPath) | ForEach-Object {
+        $_ -replace '{{BrokerName}}', $config.BrokerName `
+            -replace '{{BrokerPort}}', $config.BrokerPort `
+            -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
+            -replace '{{Replicas}}', $config.Replicas `
+            -replace '{{BindPort}}', $config.BindPort `
+            -replace '{{ZkAddress}}', $config.ZkAddress `
+            -replace '{{ZkPassword}}', $config.ZkPassword `
+            -replace '{{BrockerHostName}}', $config.BrockerHostName `
+            -replace '{{Sync}}', $config.Sync `
+            -replace '{{ZkPath}}', $config.ZkPath `
+            
+    } | Set-Content $destActiveMQConfigPath
+ 
+    $srcJettyConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\jetty.xml"
+    $destJettyConfigPath = Join-Path -Path $config.BrokerPath -ChildPath "conf\jetty.xml"
+
+    (Get-Content $srcJettyConfigPath) | ForEach-Object {
+        $_ -replace '{{JettyPort}}', $config.JettyPort `
+    } | Set-Content $destJettyConfigPath
+
+}
+
+<#
+    .DESCRIPTION
+        根据 Zookeeper 初始化 ActiveMQ 配置信息
+
+    .PARAMETER clearData
+        是否清除 data 数据
+        
+    .EXAMPLE
+      PS C:\> IniteMqConfigs -clearData $false
+
+     .EXAMPLE
+      PS C:\> IniteMqConfigs -clearData $true
+#>
+function IniteMqConfigsForZookeeper {
+    [CmdletBinding()]
+    param(
+        # ActiveMQ 配置信息
+        [Boolean] $clearData = $false
+    )
+    $mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
+    $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
+
+
+    Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
+
+    #region  集线 Broker（给生产者使用）
+    $hubMQTemplatePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\HA\apache-activemq-zookeeper-template"
+    $hubBrokerCount = 3;
+
+    [ZookeeperConfig[]]$hubMQConfigs = [ZookeeperConfig[]]::new($hubBrokerCount)
+
+    $hubMQConfigs[0] = [ZookeeperConfig]::new()
+    $hubMQConfigs[0].BrokerName = "ActiveMQ-HA-Hub-61611"
+    $hubMQConfigs[0].BrokerPort = 61611
+    $hubMQConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61611")
+    $hubMQConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
+    $hubMQConfigs[0].JettyPort = 8161
+    $hubMQConfigs[0].TemplatePath = $hubMQTemplatePath
+    $hubMQConfigs[0].Replicas = 2
+    $hubMQConfigs[0].BindPort = 61621
+    $hubMQConfigs[0].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
+    $hubMQConfigs[0].ZkPassword = ""
+    $hubMQConfigs[0].BrockerHostName = "127.0.0.1"
+    $hubMQConfigs[0].Sync = "local_disk"
+    $hubMQConfigs[0].ZkPath = "/activemq/ha/leveldb-stores"
+
+    $hubMQConfigs[1] = [ZookeeperConfig]::new()
+    $hubMQConfigs[1].BrokerName = "ActiveMQ-HA-Hub-61612"
+    $hubMQConfigs[1].BrokerPort = 61612
+    $hubMQConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61612")
+    $hubMQConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
+    $hubMQConfigs[1].JettyPort = 8162
+    $hubMQConfigs[1].TemplatePath = $hubMQTemplatePath
+    $hubMQConfigs[1].Replicas = 2
+    $hubMQConfigs[1].BindPort = 61622
+    $hubMQConfigs[1].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
+    $hubMQConfigs[1].ZkPassword = ""
+    $hubMQConfigs[1].BrockerHostName = "127.0.0.1"
+    $hubMQConfigs[1].Sync = "local_disk"
+    $hubMQConfigs[1].ZkPath = "/activemq/ha/leveldb-stores"
+
+    $hubMQConfigs[2] = [ZookeeperConfig]::new()
+    $hubMQConfigs[2].BrokerName = "ActiveMQ-HA-Hub-61613"
+    $hubMQConfigs[2].BrokerPort = 61613
+    $hubMQConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61613")
+    $hubMQConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
+    $hubMQConfigs[2].JettyPort = 8163
+    $hubMQConfigs[2].TemplatePath = $hubMQTemplatePath
+    $hubMQConfigs[2].Replicas = 2
+    $hubMQConfigs[2].BindPort = 61623
+    $hubMQConfigs[2].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
+    $hubMQConfigs[2].ZkPassword = ""
+    $hubMQConfigs[2].BrockerHostName = "127.0.0.1"
+    $hubMQConfigs[2].Sync = "local_disk"
+    $hubMQConfigs[2].ZkPath = "/activemq/ha/leveldb-stores"
+
+    foreach ($hubConfig in $hubMQConfigs) {
+        # 根据模板创建配置信息
+        CreateMqConfigForZookeepper $hubConfig 
+
+        # 复制配置信息
+        CopyMqConfig  -sourcePath $hubConfig.BrokerPath -destPath $hubConfig.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
+
+        if ($clearData -eq $true) {
+            #清除 data 数据
+            ClearMqData -mqPath $hubConfig.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
+        }
+    }  
+
+    #endregion
+
+    #region  消费Broker（给消费者使用）
+    $templatePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\HA\apache-activemq-template"
+    $brokerCount = 3;
+    [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
+    $mqConfigs[0] = [ActiveMQConfig]::new()
+    $mqConfigs[0].BrokerName = "ActiveMQ-HA-61616"
+    $mqConfigs[0].BrokerPort = 61616
+    $mqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61616")
+    $mqConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
+    $mqConfigs[0].JettyPort = 8166
+    $mqConfigs[0].TemplatePath = $templatePath
+
+    $mqConfigs[1] = [ActiveMQConfig]::new()
+    $mqConfigs[1].BrokerName = "ActiveMQ-HA-61617"
+    $mqConfigs[1].BrokerPort = 61617
+    $mqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61617")
+    $mqConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
+    $mqConfigs[1].JettyPort = 8167
+    $mqConfigs[1].TemplatePath = $templatePath
+
+    $mqConfigs[2] = [ActiveMQConfig]::new()
+    $mqConfigs[2].BrokerName = "ActiveMQ-HA-61618"
+    $mqConfigs[2].BrokerPort = 61618
+    $mqConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61618")
+    $mqConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
+    $mqConfigs[2].JettyPort = 8168
+    $mqConfigs[2].TemplatePath = $templatePath
+
+    #endregion
+
+    foreach ($config in $mqConfigs) {
+        # 根据模板创建配置信息
+        CreateMqConfig $config 
+
+        # 复制配置信息
+        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $t)
+
+        if ($clearData -eq $true) {
+            #清除 data 数据
+            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $t)
+        }
+    }  
+
+    Logger INFO("完成，初始化`【$templatePath`】配置信息 ")
+   
+}
+
+IniteMqConfigsForZookeeper -clearData $true
