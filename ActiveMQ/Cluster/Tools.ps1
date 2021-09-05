@@ -211,7 +211,7 @@ function CopyMqConfigs {
         # D:\Tools\MQ\ActiveMQ-Cluster\LB\apache-activemq-hub-61711\conf\jetty.xml
         # ActiveMQ 后台管理配置文件
         $srcJettyConfigPath = Join-Path -Path $config.SourcePath -ChildPath "conf\jetty.xml"
-        $destJettyConfigDir =   -Join ($config.DestPath, '\conf')
+        $destJettyConfigDir = -Join ($config.DestPath, '\conf')
         CopyOneItem -sourcePath $srcJettyConfigPath -desFolder  $destJettyConfigDir
 
     }
@@ -229,29 +229,50 @@ class ClusterConfig {
         return ("{0}|{1}" -f $this.SourcePath, $this.TargetPath)
     }
 }
-$mqClusterSourcePath = 'D:\Tools\MQ\ActiveMQ-Cluster'
-$mqClusterDestPath = 'D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster'
 
-[ClusterConfig[]]$clusterConfigs = [ClusterConfig[]]::new(5)
-$clusterConfigs[0] = [ClusterConfig]::new()
-$clusterConfigs[0].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-hub-61711')
-$clusterConfigs[0].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-hub-61711')
+<#
+    .DESCRIPTION
+       初始化 ActiveMQ 集群配置信息
 
-$clusterConfigs[1] = [ClusterConfig]::new()
-$clusterConfigs[1].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-hub-61712')
-$clusterConfigs[1].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-hub-61712')
+#>
+function InitLoadBalance {
+    
+    $mqClusterSourcePath = 'D:\Tools\MQ\ActiveMQ-Cluster'
+    $mqClusterDestPath = 'D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster'
+    $brokerCount=5;
+    [string[]]$mqPaths = [string[]]::new($brokerCount)
+    [ClusterConfig[]]$clusterConfigs = [ClusterConfig[]]::new($brokerCount)
 
-$clusterConfigs[2] = [ClusterConfig]::new()
-$clusterConfigs[2].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-61716')
-$clusterConfigs[2].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-61716')
+    $clusterConfigs[0] = [ClusterConfig]::new()
+    $clusterConfigs[0].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-hub-61711')
+    $clusterConfigs[0].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-hub-61711')
+    $mqPaths[0] = $clusterConfigs[0].SourcePath
 
-$clusterConfigs[3] = [ClusterConfig]::new()
-$clusterConfigs[3].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-61717')
-$clusterConfigs[3].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-61717')
+    $clusterConfigs[1] = [ClusterConfig]::new()
+    $clusterConfigs[1].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-hub-61712')
+    $clusterConfigs[1].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-hub-61712')
+    $mqPaths[1] = $clusterConfigs[1].SourcePath
 
-$clusterConfigs[4] = [ClusterConfig]::new()
-$clusterConfigs[4].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-61718')
-$clusterConfigs[4].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-61718') 
+    $clusterConfigs[2] = [ClusterConfig]::new()
+    $clusterConfigs[2].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-61716')
+    $clusterConfigs[2].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-61716')
+    $mqPaths[2] = $clusterConfigs[2].SourcePath
 
+    $clusterConfigs[3] = [ClusterConfig]::new()
+    $clusterConfigs[3].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-61717')
+    $clusterConfigs[3].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-61717')
+    $mqPaths[3] = $clusterConfigs[3].SourcePath
 
-CopyMqConfigs $clusterConfigs
+    $clusterConfigs[4] = [ClusterConfig]::new()
+    $clusterConfigs[4].SourcePath = -Join ($mqClusterSourcePath, '\LB\apache-activemq-61718')
+    $clusterConfigs[4].DestPath = -Join ($mqClusterDestPath, '\LB\apache-activemq-61718') 
+    $mqPaths[4] = $clusterConfigs[4].SourcePath
+
+    #清除MQ的data目录
+    ClearMqData $mqPaths
+
+    # 复制配置文件
+    CopyMqConfigs $clusterConfigs
+}
+
+InitLoadBalance
