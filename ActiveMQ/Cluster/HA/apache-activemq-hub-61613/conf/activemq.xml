@@ -25,11 +25,7 @@
 	</bean>
 	<!-- Allows accessing the server log -->
 	<bean id="logQuery" class="io.fabric8.insight.log.log4j.Log4jLogQuery" lazy-init="false" scope="singleton" init-method="start" destroy-method="stop"/>
-	<!--
-        The <broker> element is used to configure the ActiveMQ broker.
-		注意无论是master节点还是salve节点，它们的brokerName属性都必须一�?否则activeMQ集群就算连接到了zookeeper，也不会把他们当成一个Master/Salve�?
-    -->
-	<broker xmlns="http://activemq.apache.org/schema/core" brokerName="ActiveMQ-Cluster-HA" dataDirectory="${activemq.data}" schedulerSupport="true" schedulePeriodForDestinationPurge="10000">
+	<broker xmlns="http://activemq.apache.org/schema/core" brokerName="ActiveMQ-HA-Hub" dataDirectory="${activemq.data}" schedulerSupport="true" schedulePeriodForDestinationPurge="10000">
 		<destinationPolicy>
 			<policyMap>
 				<policyEntries>

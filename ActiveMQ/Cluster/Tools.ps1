@@ -596,6 +596,9 @@ function IniteMqConfigs {
     ActiveMQ  配置信息(Zookeeper配置主)
  #>
 class ZookeeperConfig:ActiveMQConfig {
+    #同一个主从 Broker的名称一定要一样
+    [string]$ClusterBrokerName
+     
     # 复本数量 2
     [int]$Replicas
 
@@ -668,6 +671,7 @@ function CreateMqConfigForZookeepper {
 
     (Get-Content $srcActiveMQConfigPath) | ForEach-Object {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
+            -replace '{{ClusterBrokerName}}', $config.ClusterBrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
             -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
             -replace '{{Replicas}}', $config.Replicas `
@@ -721,6 +725,7 @@ function IniteMqConfigsForZookeeper {
     [ZookeeperConfig[]]$hubMQConfigs = [ZookeeperConfig[]]::new($hubBrokerCount)
 
     $hubMQConfigs[0] = [ZookeeperConfig]::new()
+    $hubMQConfigs[0].ClusterBrokerName = "ActiveMQ-HA-Hub"
     $hubMQConfigs[0].BrokerName = "ActiveMQ-HA-Hub-61611"
     $hubMQConfigs[0].BrokerPort = 61611
     $hubMQConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61611")
@@ -736,6 +741,7 @@ function IniteMqConfigsForZookeeper {
     $hubMQConfigs[0].ZkPath = "/activemq/ha/leveldb-stores"
 
     $hubMQConfigs[1] = [ZookeeperConfig]::new()
+    $hubMQConfigs[1].ClusterBrokerName = "ActiveMQ-HA-Hub"
     $hubMQConfigs[1].BrokerName = "ActiveMQ-HA-Hub-61612"
     $hubMQConfigs[1].BrokerPort = 61612
     $hubMQConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61612")
@@ -751,6 +757,7 @@ function IniteMqConfigsForZookeeper {
     $hubMQConfigs[1].ZkPath = "/activemq/ha/leveldb-stores"
 
     $hubMQConfigs[2] = [ZookeeperConfig]::new()
+    $hubMQConfigs[2].ClusterBrokerName = "ActiveMQ-HA-Hub"
     $hubMQConfigs[2].BrokerName = "ActiveMQ-HA-Hub-61613"
     $hubMQConfigs[2].BrokerPort = 61613
     $hubMQConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61613")
@@ -815,11 +822,11 @@ function IniteMqConfigsForZookeeper {
         CreateMqConfig $config 
 
         # 复制配置信息
-        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $t)
+        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
         if ($clearData -eq $true) {
             #清除 data 数据
-            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $t)
+            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
         }
     }  
 
