@@ -115,7 +115,7 @@
     </bean>
 
     <bean id="jettyPort" class="org.apache.activemq.web.WebConsolePort" init-method="start">
-             <!-- the default port number for the web console -->
+       <!-- the default port number for the web console -->
         <property name="host" value="127.0.0.1"/>
         <property name="port" value="{{JettyPort}}"/>
     </bean>

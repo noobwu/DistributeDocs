@@ -203,7 +203,7 @@ function CreateDir {
         [string] $dirPath
     )
     
-    Logger DEBUG("dirPath:`"$dirPath`"")
+    # Logger DEBUG("dirPath:`"$dirPath`"")
 
     if ((Test-Path -Path $dirPath)) {
         return
@@ -290,14 +290,14 @@ function CopyOneItem {
             return
         }
     }
-    Logger  DEBUG("Copy directory from `"$sourcePath`"  start.")	
+    # Logger  DEBUG("Copy directory from `"$sourcePath`"  start.")	
 
     if ($sourcePath -is [System.IO.DirectoryInfo]) {
         CopyFolder -sourcePath $sourcePath -desFolder $desFolder
     }
     else {
         Copy-Item -Path $sourcePath -Destination $desFolder -Force
-        Logger INFO("Copy file from  `"$sourcePath`" to `"$desFolder`" successfully.")			 
+        # Logger INFO("Copy file from  `"$sourcePath`" to `"$desFolder`" successfully.")			 
     }
 }
  
@@ -341,7 +341,7 @@ function ClearMqData {
     
     #清空data下的文件夹及文件
     Get-ChildItem -Path $dataPath -Recurse -Force | Remove-Item -Recurse -Force
-    Logger WARNING("清空 `"$dataPath`"  中的文件夹及文件.")
+    # Logger WARNING("清空 `"$dataPath`"  中的文件夹及文件.")
     
 }
 
@@ -417,8 +417,11 @@ class ActiveMQConfig {
     # Broker 网络连接地址 static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)
     [string]$HubBrokerUri
 
+    # Broker管理后台端口 8176
+    [int]$JettyPort
+
     [string]ToString() {
-        return ("TemplatePath:{0},BrokerPath:{1},BrokerName:{2},BrokerPort:{3},HubBrokerUri:{4}" -f $this.TemplatePath, $this.BrokerPath, $this.BrokerName, $this.BrokerPort, $this.HubBrokerUri)
+        return ("TemplatePath:{0},BrokerPath:{1},BrokerName:{2},BrokerPort:{3},HubBrokerUri:{4},JettyPort:{5}" -f $this.TemplatePath, $this.BrokerPath, $this.BrokerName, $this.BrokerPort, $this.HubBrokerUri,$this.JettyPort)
     }
 }
 
@@ -437,6 +440,7 @@ class ActiveMQConfig {
       $mqConfig.BrokerName="ActiveMQ-LB-61719"
       $mqConfig.BrokerPort=61719
       $mqConfig.BrokerPath="D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-61716"
+      $mqConfig.JettyPort=8171
       $mqConfig.HubBrokerUri="static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
       $mqConfig.TemplatePath= "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-template"
 
@@ -456,6 +460,7 @@ function CreateMqConfig {
     }
 
     # Logger DEBUG($config)
+    
 
     CreateDir ( -Join ($config.BrokerPath, '\bin\win64') )
     CreateDir ( -Join ($config.BrokerPath, '\conf') )
@@ -467,6 +472,7 @@ function CreateMqConfig {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
             -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
+            -replace '{{JettyPort}}', $config.JettyPort `
     } | Set-Content $destWrapperConfigPath
 
 
@@ -477,6 +483,7 @@ function CreateMqConfig {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
             -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
+            -replace '{{JettyPort}}', $config.JettyPort `
     } | Set-Content $destActiveMQConfigPath
  
     $srcJettyConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\jetty.xml"
@@ -486,6 +493,7 @@ function CreateMqConfig {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
             -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
+            -replace '{{JettyPort}}', $config.JettyPort `
     } | Set-Content $destJettyConfigPath
 
    
@@ -508,14 +516,14 @@ function IniteMqConfigs {
     [CmdletBinding()]
     param(
         # ActiveMQ 配置信息
-        [Boolean] $clearData=$false
+        [Boolean] $clearData = $false
     )
     $mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusBroker = "D:\Tools\MQ\ActiveMQ-Cluster"
     $templatePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-template"
     $brokerCount = 5;
 
-    Logger DEBUG("templatePath:`"$templatePath`" ")
+    Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
 
     [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
 
@@ -524,14 +532,16 @@ function IniteMqConfigs {
     $mqConfigs[0].BrokerName = "ActiveMQ-LB-Hub-61711"
     $mqConfigs[0].BrokerPort = 61711
     $mqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61711")
-    $mqConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61712)"
+    $mqConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61712,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)"
+    $mqConfigs[0].JettyPort = 8171
     $mqConfigs[0].TemplatePath = $templatePath
 
     $mqConfigs[1] = [ActiveMQConfig]::new()
     $mqConfigs[1].BrokerName = "ActiveMQ-LB-Hub-61712"
     $mqConfigs[1].BrokerPort = 61712
     $mqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61712")
-    $mqConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61711)"
+    $mqConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)"
+    $mqConfigs[1].JettyPort = 8172
     $mqConfigs[1].TemplatePath = $templatePath
     #endregion 集线 Broker（给生产者使用）
 	
@@ -542,20 +552,23 @@ function IniteMqConfigs {
     $mqConfigs[2].BrokerPort = 61716
     $mqConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-61716")
     $mqConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
+    $mqConfigs[2].JettyPort = 8176
     $mqConfigs[2].TemplatePath = $templatePath
 
     $mqConfigs[3] = [ActiveMQConfig]::new()
     $mqConfigs[3].BrokerName = "ActiveMQ-LB-61717"
     $mqConfigs[3].BrokerPort = 61717
-    $mqConfigs[3].BrokerPath= -Join ($mqClusterSourcePath, "\LB\apache-activemq-61717")
+    $mqConfigs[3].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-61717")
     $mqConfigs[3].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
+    $mqConfigs[3].JettyPort = 8177
     $mqConfigs[3].TemplatePath = $templatePath
 
     $mqConfigs[4] = [ActiveMQConfig]::new()
     $mqConfigs[4].BrokerName = "ActiveMQ-LB-61718"
     $mqConfigs[4].BrokerPort = 61718
-    $mqConfigs[4].BrokerPath= -Join ($mqClusterSourcePath, "\LB\apache-activemq-61718")
+    $mqConfigs[4].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-61718")
     $mqConfigs[4].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
+    $mqConfigs[4].JettyPort = 8178
     $mqConfigs[4].TemplatePath = $templatePath
 
     #endregion
@@ -565,14 +578,15 @@ function IniteMqConfigs {
         CreateMqConfig $config 
 
         # 复制配置信息
-        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath,$mqClusBroker)
+        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusBroker)
 
-        if($clearData -eq $true){
+        if ($clearData -eq $true) {
             #清除 data 数据
-            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath,$mqClusBroker)
+            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusBroker)
         }
     }  
 
+    Logger INFO("完成，初始化`【$templatePath`】配置信息 ")
    
 }
 

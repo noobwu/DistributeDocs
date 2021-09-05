@@ -106,9 +106,8 @@
 		<shutdownHooks>
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook"/>
 		</shutdownHooks>
-		<!-- 请注意，一定需要ActiveMQ-LB-Hub-61712(tcp://127.0.0.1:61712)提供了这样的连接协议和端�?-->
 		<networkConnectors>
-			<networkConnector uri="static:(tcp://127.0.0.1:61711)" />
+			<networkConnector uri="static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" />
 		</networkConnectors>
 	</broker>
 	<!--
