@@ -732,7 +732,7 @@ function IniteMqConfigsForZookeeper {
     $hubMQConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
     $hubMQConfigs[0].JettyPort = 8161
     $hubMQConfigs[0].TemplatePath = $hubMQTemplatePath
-    $hubMQConfigs[0].Replicas = 2
+    $hubMQConfigs[0].Replicas = 0
     $hubMQConfigs[0].BindPort = 61621
     $hubMQConfigs[0].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
     $hubMQConfigs[0].ZkPassword = ""
@@ -748,7 +748,7 @@ function IniteMqConfigsForZookeeper {
     $hubMQConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
     $hubMQConfigs[1].JettyPort = 8162
     $hubMQConfigs[1].TemplatePath = $hubMQTemplatePath
-    $hubMQConfigs[1].Replicas = 2
+    $hubMQConfigs[1].Replicas = 0
     $hubMQConfigs[1].BindPort = 61622
     $hubMQConfigs[1].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
     $hubMQConfigs[1].ZkPassword = ""
@@ -764,7 +764,7 @@ function IniteMqConfigsForZookeeper {
     $hubMQConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
     $hubMQConfigs[2].JettyPort = 8163
     $hubMQConfigs[2].TemplatePath = $hubMQTemplatePath
-    $hubMQConfigs[2].Replicas = 2
+    $hubMQConfigs[2].Replicas = 0
     $hubMQConfigs[2].BindPort = 61623
     $hubMQConfigs[2].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
     $hubMQConfigs[2].ZkPassword = ""
