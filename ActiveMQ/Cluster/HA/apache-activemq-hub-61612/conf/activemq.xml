@@ -64,7 +64,7 @@
         -->
 		<persistenceAdapter>
 			<!-- <kahaDB directory="${activemq.data}/kahadb"/> -->
-			<replicatedLevelDB directory="${activemq.data}/leveldb" replicas="0" bind="tcp://0.0.0.0:61622" zkAddress="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183" zkPassword="" hostname="127.0.0.1" sync="local_disk" zkPath="/activemq/ha/leveldb-stores"/>
+			<replicatedLevelDB directory="${activemq.data}/leveldb" replicas="1" bind="tcp://0.0.0.0:61622" zkAddress="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183" zkPassword="" hostname="127.0.0.1" sync="local_disk" zkPath="/activemq/ha/leveldb-stores"/>
 		</persistenceAdapter>
 		<!--
             The systemUsage controls the maximum amount of space the broker will
