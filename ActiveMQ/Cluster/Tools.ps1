@@ -301,6 +301,36 @@ function CopyOneItem {
     }
 }
  
+<#
+    .DESCRIPTION
+       清空指定目录下的所有文件
+
+    .PARAMETER Level
+        日志类型(VERBOSE,DEBUG, INFO, WARNING, ERROR)
+        
+    .EXAMPLE
+      PS C:\> ClearMqData @("D:\Tools\MQ\ActiveMQ-Cluster\LB\apache-activemq-61716")
+    
+#>
+function ClearDir {
+    [CmdletBinding()]
+    param(
+        # 目录地址
+        [string] $path
+    )
+    If (([String]::IsNullOrEmpty($path))) {
+        throw "路径不能为空"
+    }
+    if (!(Test-Path -Path $path)) {
+        throw "路径地址[`($path)`]不存在"
+    } 
+
+    #清空$path下的文件夹及文件
+    Get-ChildItem -Path $path -Recurse -Force | Remove-Item -Recurse -Force
+    
+    Logger WARNING("清空 `"$path`"  中的文件夹及文件.")
+    
+}
 
 <#
     .DESCRIPTION
@@ -311,19 +341,13 @@ function CopyOneItem {
         
     .EXAMPLE
       PS C:\> ClearMqData @("D:\Tools\MQ\ActiveMQ-Cluster\LB\apache-activemq-61716")
-    
-    .EXAMPLE
-      # 清空ActiveMQ目录下的data目录的内容
-      $mqClusterPath = 'D:\Tools\MQ\ActiveMQ-Cluster'
-      $mqPaths = @( -Join ($mqClusterPath, '\LB\apache-activemq-hub-61711'), -Join ($mqClusterPath, '\LB\apache-activemq-hub-61712'), -Join ($mqClusterPath, '\LB\apache-activemq-61716'), -Join ($mqClusterPath, '\LB\apache-activemq-61717'), -Join ($mqClusterPath, '\LB\apache-activemq-61718'))
-      PS C:\> ClearMqData $mqPaths
 
 #>
 function ClearMqData {
     [CmdletBinding()]
     param(
         # ActiveMQ 所在目录
-        [string[]] $mqPath
+        [string] $mqPath
     )
     If (([String]::IsNullOrEmpty($mqPath))) {
         throw "路径不能为空"
@@ -331,18 +355,8 @@ function ClearMqData {
     if (!(Test-Path -Path $mqPath)) {
         throw "路径地址[`($mqPath)`]不存在"
     } 
-
-    $dataPath = Join-Path -Path $mqPath -ChildPath "\data"
-    #$dataPath=-Join ($mqPath, '\data')
-
-    #删除data文件夹
-    # Remove-Item $dataPath -Recurse -Force
-    #Logger WARNING("删除文件夹 `"$dataPath`".")
-    
-    #清空data下的文件夹及文件
-    Get-ChildItem -Path $dataPath -Recurse -Force | Remove-Item -Recurse -Force
-    # Logger WARNING("清空 `"$dataPath`"  中的文件夹及文件.")
-    
+    $dataPath = -Join ($mqPath, '\data')
+    ClearDir -path $dataPath
 }
 
 
@@ -423,6 +437,7 @@ class ActiveMQConfig {
     [string]ToString() {
         return ("TemplatePath:{0},BrokerPath:{1},BrokerName:{2},BrokerPort:{3},HubBrokerUri:{4},JettyPort:{5}" -f $this.TemplatePath, $this.BrokerPath, $this.BrokerName, $this.BrokerPort, $this.HubBrokerUri, $this.JettyPort)
     }
+
 }
 
 <#
@@ -479,22 +494,22 @@ function CreateMqConfig {
     $srcActiveMQConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\activemq.xml"
     $destActiveMQConfigPath = Join-Path -Path $config.BrokerPath -ChildPath "conf\activemq.xml"
 
-    (Get-Content $srcActiveMQConfigPath -encoding UTF8) | ForEach-Object {
+    (Get-Content $srcActiveMQConfigPath -Encoding UTF8) | ForEach-Object {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
             -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
             -replace '{{JettyPort}}', $config.JettyPort `
-    } | Set-Content $destActiveMQConfigPath -encoding UTF8
+    } | Set-Content $destActiveMQConfigPath -Encoding UTF8
  
     $srcJettyConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\jetty.xml"
     $destJettyConfigPath = Join-Path -Path $config.BrokerPath -ChildPath "conf\jetty.xml"
 
-    (Get-Content $srcJettyConfigPath -encoding UTF8) | ForEach-Object {
+    (Get-Content $srcJettyConfigPath -Encoding UTF8) | ForEach-Object {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
             -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
             -replace '{{JettyPort}}', $config.JettyPort `
-    } | Set-Content $destJettyConfigPath -encoding UTF8
+    } | Set-Content $destJettyConfigPath -Encoding UTF8
 
 }
 
@@ -519,7 +534,7 @@ function InitMqConfigs {
     )
     $mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
-    $templatePath = -Join($mqClusterSourcePath,"\LB\apache-activemq-template")
+    $templatePath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-template")
     $brokerCount = 5;
 
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
@@ -669,7 +684,7 @@ function CreateMqConfigForZookeepper {
     $srcActiveMQConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\activemq.xml"
     $destActiveMQConfigPath = Join-Path -Path $config.BrokerPath -ChildPath "conf\activemq.xml"
 
-    (Get-Content $srcActiveMQConfigPath -encoding UTF8) | ForEach-Object {
+    (Get-Content $srcActiveMQConfigPath -Encoding UTF8) | ForEach-Object {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{ClusterBrokerName}}', $config.ClusterBrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
@@ -682,17 +697,62 @@ function CreateMqConfigForZookeepper {
             -replace '{{Sync}}', $config.Sync `
             -replace '{{ZkPath}}', $config.ZkPath `
             
-    } | Set-Content $destActiveMQConfigPath -encoding UTF8
+    } | Set-Content $destActiveMQConfigPath -Encoding UTF8
  
     $srcJettyConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\jetty.xml"
     $destJettyConfigPath = Join-Path -Path $config.BrokerPath -ChildPath "conf\jetty.xml"
 
-    (Get-Content $srcJettyConfigPath -encoding UTF8) | ForEach-Object {
+    (Get-Content $srcJettyConfigPath -Encoding UTF8) | ForEach-Object {
         $_ -replace '{{JettyPort}}', $config.JettyPort `
-    } | Set-Content $destJettyConfigPath -encoding UTF8
+    } | Set-Content $destJettyConfigPath -Encoding UTF8
 
 }
 
+<#
+    .DESCRIPTION
+       复制 Zookeeper 的配置文件到指定目录
+
+    .PARAMETER sourcePath
+       来源目录
+
+    .PARAMETER destPath
+       目的地目录
+        
+    .EXAMPLE
+      PS C:\> CopyMqConfig 
+    
+#>
+function CopyZookeeperConfig {
+    [CmdletBinding()]
+    param(
+        # Zookeeper 来源目录
+        [string]$sourcePath,
+        # Zookeeper 目标目录
+        [string]$destPath
+    )
+    If (([String]::IsNullOrEmpty($sourcePath))) {
+        throw "目录地址不能为空"
+    }
+    if (!(Test-Path -Path $sourcePath)) {
+        throw "目录地址[`($sourcePath)`]不存在"
+    } 
+    # Zookeeper 启动配置文件
+    # D:\Tools\Mq\ActiveMQ-Cluster\HA\apache-zookeeper-2183\conf\zoo.cfg
+    $srcConfigPath = Join-Path -Path $sourcePath -ChildPath "conf\zoo.cfg"
+    $destConfigDir = -Join ($destPath, '\conf')
+    #Logger INFO("Zookeeper 启动配置文件, src:`"$srcConfigPath`",dest:`"$destConfigDir`" .")
+
+    CopyOneItem -sourcePath $srcConfigPath -desFolder  $destConfigDir
+
+
+    #  D:\Tools\Mq\ActiveMQ-Cluster\HA\apache-zookeeper-2181\data\myid
+    # myid 配置文件
+    $srcMyIdPath = Join-Path -Path $sourcePath  -ChildPath "data\myid"
+    $destMyIdPath = -Join ($destPath, '\data')
+    CopyOneItem -sourcePath $srcMyIdPath -desFolder  $destMyIdPath
+
+
+}
 <#
     .DESCRIPTION
         根据 Zookeeper 初始化 ActiveMQ 配置信息
@@ -720,7 +780,7 @@ function InitMqConfigsForZookeeper {
  
 
     #region  集线 Broker（给生产者使用）
-    $hubMQTemplatePath = -Join( $mqClusterSourcePath,"\HA\apache-activemq-zookeeper-template")
+    $hubMQTemplatePath = -Join ( $mqClusterSourcePath, "\HA\apache-activemq-zookeeper-template")
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
     $hubBrokerCount = 3;
 
@@ -790,7 +850,7 @@ function InitMqConfigsForZookeeper {
     #endregion
 
     #region  消费Broker（给消费者使用）
-    $templatePath =-Join($mqClusterSourcePath,"\HA\apache-activemq-template")
+    $templatePath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-template")
     $brokerCount = 3;
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
     [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
@@ -853,6 +913,9 @@ class ZookeeperConfig {
     #  Zookeeper 所在目录
     [string]$Path
 
+    #  Zookeeper 所在目录
+    [string]$DestPath
+
     # 监听client连接的端口号 2181
     [int]$ClientPort
 
@@ -904,21 +967,25 @@ function CreateZookeepperConfig {
     $srcConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\zoo.cfg"
     $destConfigPath = Join-Path -Path $config.Path -ChildPath "conf\zoo.cfg"
 
-    (Get-Content $srcConfigPath -encoding UTF8) | ForEach-Object {
-        $_ -replace '{{Path}}', $config.Path.Replace('\\', '/') `
+    
+    (Get-Content $srcConfigPath -Encoding UTF8) | ForEach-Object {
+        $_ -replace '{{Path}}', $config.DestPath.Replace('\', '/') `
             -replace '{{ClientPort}}', $config.ClientPort `
             -replace '{{EnableServer}}', $config.EnableServer `
             -replace '{{ServerPort}}', $config.ServerPort `
             -replace '{{ClusterServers}}', $config.ClusterServers `
             
-    } | Set-Content $destConfigPath -encoding UTF8
+    } | Set-Content $destConfigPath -Encoding UTF8
  
+
     $srcMyIdPath = Join-Path -Path $config.TemplatePath -ChildPath "data\myid"
     $destMyIdPath = Join-Path -Path $config.Path -ChildPath "data\myid"
+    $text = Get-Content -Raw $srcMyIdPath -Encoding UTF8
+    $text = $text.Replace('{{MyId}}', $config.MyId)
+    $utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+    [System.IO.File]::WriteAllLines($destMyIdPath, $text, $utf8NoBomEncoding)
 
-    (Get-Content $srcMyIdPath -encoding UTF8) | ForEach-Object {
-        $_ -replace '{{MyId}}', $config.MyId `
-    } | Set-Content $destMyIdPath -encoding UTF8
+    #(Get-Content $srcMyIdPath -encoding UTF8) | ForEach-Object {$_ -replace '{{MyId}}', $config.MyId} | Set-Content -NoNewline $destMyIdPath -encoding UTF8 $False
 
 }
 
@@ -943,10 +1010,10 @@ function InitZookeepperConfigs {
         [Boolean] $clearData = $false
     )
    
-    $count = 1;
+    $count = 3;
     $mqClusterSourcePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
-    $templatePath = -Join($mqClusterSourcePath,"\HA\apache-zookeeper-template")
+    $templatePath = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-template")
 
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
 
@@ -957,25 +1024,52 @@ function InitZookeepperConfigs {
     $configs[0] = [ZookeeperConfig]::new()
     $configs[0].TemplatePath = $templatePath
     $configs[0].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-2181")
-    $configs[0].ClientPort = 2281
+    $configs[0].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-2181")
+    $configs[0].ClientPort = 2181
     $configs[0].EnableServer = $true
     $configs[0].ServerPort = 8281
-    $configs[0].ClusterServers = -Join ("server.1=127.0.0.1:2881:3881","`n","server.2=127.0.0.1:2882:3882","`n","server.3=127.0.0.1:2882:3883","`n")
+    $configs[0].ClusterServers = -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2882:3883", "`n")
     $configs[0].MyId = 1
+
+    $configs[1] = [ZookeeperConfig]::new()
+    $configs[1].TemplatePath = $templatePath
+    $configs[1].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-2182")
+    $configs[1].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-2182")
+    $configs[1].ClientPort = 2182
+    $configs[1].EnableServer = $true
+    $configs[1].ServerPort = 8282
+    $configs[1].ClusterServers = -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2882:3883", "`n")
+    $configs[1].MyId = 2
+
+    $configs[2] = [ZookeeperConfig]::new()
+    $configs[2].TemplatePath = $templatePath
+    $configs[2].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-2183")
+    $configs[2].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-2183")
+    $configs[2].ClientPort = 2183
+    $configs[2].EnableServer = $true
+    $configs[2].ServerPort = 8283
+    $configs[2].ClusterServers = -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2882:3883", "`n")
+    $configs[2].MyId = 3
+
 
     foreach ($config in $configs) {
         # 根据模板创建配置信息
         CreateZookeepperConfig $config 
 
-        # 复制配置信息
-        # CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
-
-        <#     
         if ($clearData -eq $true) {
-            #清除 data 数据
-            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
+            $destDir = $config.Path.Replace($mqClusterSourcePath, $mqClusterDestPath)
+
+            ClearDir -path ( -Join ($destDir, '\data')) 
+
+            ClearDir -path ( -Join ($destDir, '\logs')) 
+
         } 
-        #>
+
+
+        # 复制配置信息
+        CopyZookeeperConfig  -sourcePath $config.Path -destPath $config.Path.Replace($mqClusterSourcePath, $mqClusterDestPath)
+
+      
 
     }  
 
