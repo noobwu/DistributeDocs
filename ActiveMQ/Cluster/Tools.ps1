@@ -519,7 +519,7 @@ function InitMqConfigs {
     )
     $mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
-    $templatePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-template"
+    $templatePath = -Join($mqClusterSourcePath,"\LB\apache-activemq-template")
     $brokerCount = 5;
 
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
@@ -712,6 +712,7 @@ function InitMqConfigsForZookeeper {
         # 是否清除 ActiveMQ 目录下的 data 数据
         [Boolean] $clearData = $false
     )
+    #$mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterSourcePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
 
@@ -719,7 +720,7 @@ function InitMqConfigsForZookeeper {
  
 
     #region  集线 Broker（给生产者使用）
-    $hubMQTemplatePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster\HA\apache-activemq-zookeeper-template"
+    $hubMQTemplatePath = -Join( $mqClusterSourcePath,"\HA\apache-activemq-zookeeper-template")
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
     $hubBrokerCount = 3;
 
@@ -789,7 +790,7 @@ function InitMqConfigsForZookeeper {
     #endregion
 
     #region  消费Broker（给消费者使用）
-    $templatePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster\HA\apache-activemq-template"
+    $templatePath =-Join($mqClusterSourcePath,"\HA\apache-activemq-template")
     $brokerCount = 3;
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
     [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
@@ -941,11 +942,11 @@ function InitZookeepperConfigs {
         # ActiveMQ 配置信息
         [Boolean] $clearData = $false
     )
-    $templatePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster\HA\apache-zookeeper-template"
+   
     $count = 1;
     $mqClusterSourcePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
-
+    $templatePath = -Join($mqClusterSourcePath,"\HA\apache-zookeeper-template")
 
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
 
