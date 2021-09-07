@@ -94,7 +94,7 @@
         -->
 		<transportConnectors>
 			<!-- DOS protection, limit concurrent connections to 1000 and frame size to 100MB -->
-			<transportConnector name="openwire" uri="tcp://0.0.0.0:61716?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+			<transportConnector name="openwire" uri="tcp://0.0.0.0:61716?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600" updateClusterClients="true" updateClusterClientsOnRemove="true" rebalanceClusterClients="true" />
 			<!--             
            <transportConnector name="amqp" uri="amqp://0.0.0.0:5672?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
             <transportConnector name="stomp" uri="stomp://0.0.0.0:61613?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
