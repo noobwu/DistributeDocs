@@ -113,7 +113,7 @@
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook"/>
 		</shutdownHooks>
 		<!--网络连接配置 http://activemq.apache.org/networks-of-brokers.html-->
-		{{$NetworkConnector}}
+		{{NetworkConnectors}}
 	</broker>
 	<!--{{HubBrokerUri}}
         Enable web consoles, REST and Ajax APIs and demos

@@ -25,7 +25,10 @@
 	</bean>
 	<!-- Allows accessing the server log -->
 	<bean id="logQuery" class="io.fabric8.insight.log.log4j.Log4jLogQuery" lazy-init="false" scope="singleton" init-method="start" destroy-method="stop"/>
-	<broker xmlns="http://activemq.apache.org/schema/core" brokerName="{{ClusterBrokerName}}" dataDirectory="${activemq.data}" schedulerSupport="true" schedulePeriodForDestinationPurge="10000">
+	<!--
+        The <broker> element is used to configure the ActiveMQ broker.
+    -->
+	<broker xmlns="http://activemq.apache.org/schema/core" brokerName="{{BrokerName}}" dataDirectory="${activemq.data}" schedulerSupport="true" schedulePeriodForDestinationPurge="10000">
 		<destinationPolicy>
 			<policyMap>
 				<policyEntries>
@@ -63,18 +66,7 @@
             http://activemq.apache.org/persistence.html
         -->
 		<persistenceAdapter>
-			<!-- <kahaDB directory="${activemq.data}/kahadb"/> -->
-			<!-- 
-			# directory： 存储数据的路径
-			# replicas：集群中的节点数【(replicas/2)+1公式表示集群中至少要正常运行的服务数量】，3台集群那么允许1台宕机， 另外两台要正常运行  
-			# bind：当该节点成为master后，它将绑定已配置的地址和端口来为复制协议提供服务。还支持使用动态端口。只需使用tcp://0.0.0.0:0进行配置即可，默认端口为61616。 
-			# zkAddress：ZK的ip和port， 如果是集群，则用逗号隔开(这里作为简单示例ZooKeeper配置为单点， 这样已经适用于大多数环境了， 集群也就多几个配置) 
-			# zkPassword：当连接到ZooKeeper服务器时用的密码，没有密码则不配置。 
-			# zkPah：ZK选举信息交换的存贮路径，启动服务后actimvemq会到zookeeper上注册生成此路径   
-			# hostname： ActiveMQ所在主机的IP
-			# 更多参考：http://activemq.apache.org/replicated-leveldb-store.html
-            -->
-			<replicatedLevelDB directory="${activemq.data}/leveldb" replicas="{{Replicas}}" bind="tcp://0.0.0.0:{{BindPort}}" zkAddress="{{ZkAddress}}" zkPassword="{{ZkPassword}}" hostname="{{BrockerHostName}}" sync="{{Sync}}" zkPath="{{ZkPath}}"/>
+			<kahaDB directory="${activemq.data}/kahadb"/>
 		</persistenceAdapter>
 		<!--
             The systemUsage controls the maximum amount of space the broker will
@@ -103,19 +95,22 @@
 		<transportConnectors>
 			<!-- DOS protection, limit concurrent connections to 1000 and frame size to 100MB -->
 			<transportConnector name="openwire" uri="tcp://0.0.0.0:{{BrokerPort}}?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
-			<!--   <transportConnector name="amqp" uri="amqp://0.0.0.0:5672?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+			<!--             
+           <transportConnector name="amqp" uri="amqp://0.0.0.0:5672?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
             <transportConnector name="stomp" uri="stomp://0.0.0.0:61613?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
             <transportConnector name="mqtt" uri="mqtt://0.0.0.0:1883?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
-            <transportConnector name="ws" uri="ws://0.0.0.0:61614?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/> -->
+            <transportConnector name="ws" uri="ws://0.0.0.0:61614?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+			-->
 		</transportConnectors>
 		<!-- destroy the spring context on shutdown to stop jetty -->
 		<shutdownHooks>
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook"/>
 		</shutdownHooks>
-		<!--网络连接配置 http://activemq.apache.org/networks-of-brokers.html-->
-		{{$NetworkConnector}}
+		<networkConnectors>
+			<networkConnector uri="{{HubBrokerUri}}" />
+		</networkConnectors>
 	</broker>
-	<!--{{HubBrokerUri}}
+	<!--
         Enable web consoles, REST and Ajax APIs and demos
         The web consoles requires by default login, you can disable this in the jetty.xml file
 

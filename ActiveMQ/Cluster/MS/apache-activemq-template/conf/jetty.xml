@@ -1,4 +1,4 @@
-﻿
+
     <!--
         Licensed to the Apache Software Foundation (ASF) under one or more contributor
         license agreements. See the NOTICE file distributed with this work for additional
@@ -117,7 +117,7 @@
     <bean id="jettyPort" class="org.apache.activemq.web.WebConsolePort" init-method="start">
        <!-- the default port number for the web console -->
         <property name="host" value="127.0.0.1"/>
-        <property name="port" value="8187"/>
+        <property name="port" value="{{JettyPort}}"/>
     </bean>
 
     <bean id="Server" depends-on="jettyPort" class="org.eclipse.jetty.server.Server"

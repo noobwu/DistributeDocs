@@ -431,6 +431,10 @@ class ActiveMQConfig {
     # Broker 网络连接地址 static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)
     [string]$HubBrokerUri
 
+    # http://activemq.apache.org/networks-of-brokers.html
+    # NetworkConnector（网络连接器）
+    [string]$NetworkConnectors 
+
     # Broker管理后台端口 8176
     [int]$JettyPort
 
@@ -540,6 +544,9 @@ function InitMqConfigs {
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
 
     [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
+    for ($i = 0; $i -lt $brokerCount; $i++) {
+        
+    }
 
     #region  集线 Broker（给生产者使用）
     $mqConfigs[0] = [ActiveMQConfig]::new()
@@ -696,6 +703,7 @@ function CreateMqConfigForZookeepper {
             -replace '{{BrockerHostName}}', $config.BrockerHostName `
             -replace '{{Sync}}', $config.Sync `
             -replace '{{ZkPath}}', $config.ZkPath `
+            -replace '{{NetworkConnectors}}', $config.NetworkConnectors `
             
     } | Set-Content $destActiveMQConfigPath -Encoding UTF8
  
@@ -751,8 +759,8 @@ function CopyZookeeperConfig {
     $destMyIdPath = -Join ($destPath, '\data')
     CopyOneItem -sourcePath $srcMyIdPath -desFolder  $destMyIdPath
 
-
 }
+
 <#
     .DESCRIPTION
         根据 Zookeeper 初始化 ActiveMQ 配置信息
@@ -766,7 +774,7 @@ function CopyZookeeperConfig {
      .EXAMPLE
       PS C:\> IniteMqConfigs -clearData $true
 #>
-function InitMqConfigsForZookeeper {
+function InitHAMqConfigsForZookeeper {
     [CmdletBinding()]
     param(
         # 是否清除 ActiveMQ 目录下的 data 数据
@@ -776,63 +784,37 @@ function InitMqConfigsForZookeeper {
     $mqClusterSourcePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
 
-
- 
-
     #region  集线 Broker（给生产者使用）
     $hubMQTemplatePath = -Join ( $mqClusterSourcePath, "\HA\apache-activemq-zookeeper-template")
-    Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
+    Logger INFO("开始，初始化集线 Broker`【$templatePath`】配置信息 ")
     $hubBrokerCount = 3;
 
     [ActiveMQZookeeperConfig[]]$hubMQConfigs = [ActiveMQZookeeperConfig[]]::new($hubBrokerCount)
-
-    $hubMQConfigs[0] = [ActiveMQZookeeperConfig]::new()
-    $hubMQConfigs[0].ClusterBrokerName = "ActiveMQ-HA-Hub"
-    $hubMQConfigs[0].BrokerName = "ActiveMQ-HA-Hub-61611"
-    $hubMQConfigs[0].BrokerPort = 61611
-    $hubMQConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61611")
-    $hubMQConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
-    $hubMQConfigs[0].JettyPort = 8161
-    $hubMQConfigs[0].TemplatePath = $hubMQTemplatePath
-    $hubMQConfigs[0].Replicas = 1
-    $hubMQConfigs[0].BindPort = 61621
-    $hubMQConfigs[0].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
-    $hubMQConfigs[0].ZkPassword = ""
-    $hubMQConfigs[0].BrockerHostName = "127.0.0.1"
-    $hubMQConfigs[0].Sync = "local_disk"
-    $hubMQConfigs[0].ZkPath = "/activemq/ha/leveldb-stores"
-
-    $hubMQConfigs[1] = [ActiveMQZookeeperConfig]::new()
-    $hubMQConfigs[1].ClusterBrokerName = "ActiveMQ-HA-Hub"
-    $hubMQConfigs[1].BrokerName = "ActiveMQ-HA-Hub-61612"
-    $hubMQConfigs[1].BrokerPort = 61612
-    $hubMQConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61612")
-    $hubMQConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
-    $hubMQConfigs[1].JettyPort = 8162
-    $hubMQConfigs[1].TemplatePath = $hubMQTemplatePath
-    $hubMQConfigs[1].Replicas = 1
-    $hubMQConfigs[1].BindPort = 61622
-    $hubMQConfigs[1].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
-    $hubMQConfigs[1].ZkPassword = ""
-    $hubMQConfigs[1].BrockerHostName = "127.0.0.1"
-    $hubMQConfigs[1].Sync = "local_disk"
-    $hubMQConfigs[1].ZkPath = "/activemq/ha/leveldb-stores"
-
-    $hubMQConfigs[2] = [ActiveMQZookeeperConfig]::new()
-    $hubMQConfigs[2].ClusterBrokerName = "ActiveMQ-HA-Hub"
-    $hubMQConfigs[2].BrokerName = "ActiveMQ-HA-Hub-61613"
-    $hubMQConfigs[2].BrokerPort = 61613
-    $hubMQConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61613")
-    $hubMQConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
-    $hubMQConfigs[2].JettyPort = 8163
-    $hubMQConfigs[2].TemplatePath = $hubMQTemplatePath
-    $hubMQConfigs[2].Replicas = 1
-    $hubMQConfigs[2].BindPort = 61623
-    $hubMQConfigs[2].ZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
-    $hubMQConfigs[2].ZkPassword = ""
-    $hubMQConfigs[2].BrockerHostName = "127.0.0.1"
-    $hubMQConfigs[2].Sync = "local_disk"
-    $hubMQConfigs[2].ZkPath = "/activemq/ha/leveldb-stores"
+    $hubBrokerUri="static:(tcp://127.0.0.1:61612,tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
+    $hubBrokerPort=61611
+    $hubJettyPort=8161
+    $hubReplicas=1
+    $hubBindPort=61621
+    $hubZkAddress="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
+    $hubBrockerHostName="127.0.0.1"
+    $hubZkPath= "/activemq/ha/leveldb-stores"
+    for ($i = 0; $i -lt $hubBrokerCount; $i++) {
+        $hubMQConfigs[$i] = [ActiveMQZookeeperConfig]::new()
+        $hubMQConfigs[$i].ClusterBrokerName = "ActiveMQ-HA-Hub"
+        $hubMQConfigs[$i].BrokerPort = $hubBrokerPort+$i
+        $hubMQConfigs[$i].BrokerName = "ActiveMQ-HA-Hub-"+ $hubMQConfigs[$i].BrokerPort
+        $hubMQConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61611")
+        $hubMQConfigs[$i].HubBrokerUri = $hubBrokerUri
+        $hubMQConfigs[$i].JettyPort = $hubJettyPort+1
+        $hubMQConfigs[$i].TemplatePath = $hubMQTemplatePath
+        $hubMQConfigs[$i].Replicas = $hubReplicas
+        $hubMQConfigs[$i].BindPort = $hubBindPort+1
+        $hubMQConfigs[$i].ZkAddress =   $hubZkAddress
+        $hubMQConfigs[$i].ZkPassword = ""
+        $hubMQConfigs[$i].BrockerHostName = $hubBrockerHostName
+        $hubMQConfigs[$i].Sync = "local_disk"
+        $hubMQConfigs[$i].ZkPath = $hubZkPath
+    }
 
     foreach ($hubConfig in $hubMQConfigs) {
         # 根据模板创建配置信息
@@ -846,7 +828,7 @@ function InitMqConfigsForZookeeper {
             ClearMqData -mqPath $hubConfig.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
         }
     }  
-    Logger INFO("完成，初始化`【$templatePath`】配置信息 ")
+    Logger INFO("完成，初始化集线 Broker `【$templatePath`】配置信息 ")
     #endregion
 
     #region  消费Broker（给消费者使用）
@@ -854,29 +836,17 @@ function InitMqConfigsForZookeeper {
     $brokerCount = 3;
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
     [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
-    $mqConfigs[0] = [ActiveMQConfig]::new()
-    $mqConfigs[0].BrokerName = "ActiveMQ-HA-61616"
-    $mqConfigs[0].BrokerPort = 61616
-    $mqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61616")
-    $mqConfigs[0].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
-    $mqConfigs[0].JettyPort = 8166
-    $mqConfigs[0].TemplatePath = $templatePath
-
-    $mqConfigs[1] = [ActiveMQConfig]::new()
-    $mqConfigs[1].BrokerName = "ActiveMQ-HA-61617"
-    $mqConfigs[1].BrokerPort = 61617
-    $mqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61617")
-    $mqConfigs[1].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
-    $mqConfigs[1].JettyPort = 8167
-    $mqConfigs[1].TemplatePath = $templatePath
-
-    $mqConfigs[2] = [ActiveMQConfig]::new()
-    $mqConfigs[2].BrokerName = "ActiveMQ-HA-61618"
-    $mqConfigs[2].BrokerPort = 61618
-    $mqConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-61618")
-    $mqConfigs[2].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
-    $mqConfigs[2].JettyPort = 8168
-    $mqConfigs[2].TemplatePath = $templatePath
+    $brokerPort=61616
+    $jettyPort=8166
+    for ($i = 0; $i -lt $brokerCount; $i++) {
+        $mqConfigs[$i] = [ActiveMQConfig]::new()
+        $mqConfigs[$i].BrokerPort =  ($brokerPort+$i)
+        $mqConfigs[$i].BrokerName = "ActiveMQ-HA-"+ $mqConfigs[$i].BrokerPort
+        $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-"+ $mqConfigs[$i].BrokerPort)
+        $mqConfigs[$i].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
+        $mqConfigs[$i].JettyPort =  ($jettyPort+$i)
+        $mqConfigs[$i].TemplatePath = $templatePath
+    }
 
     #endregion
 
@@ -897,7 +867,7 @@ function InitMqConfigsForZookeeper {
    
 }
 
-# InitMqConfigsForZookeeper -clearData $true
+# InitHAMqConfigsForZookeeper -clearData $true
 
 <# 
     Zookeeper 配置信息
@@ -992,21 +962,21 @@ function CreateZookeepperConfig {
 
 <#
     .DESCRIPTION
-        根据 Zookeeper 初始化 ActiveMQ 配置信息
+        根据 ActiveMQ 主从的 Zookeeper 配置信息
 
     .PARAMETER clearData
         是否清除 data 数据
         
     .EXAMPLE
-      PS C:\> IniteMqConfigs -clearData $false
+      PS C:\> InitHAZookeepperConfigs -clearData $false
 
      .EXAMPLE
-      PS C:\> IniteMqConfigs -clearData $true
+      PS C:\> InitHAZookeepperConfigs -clearData $true
 #>
-function InitZookeepperConfigs {
+function InitHAZookeepperConfigs {
     [CmdletBinding()]
     param(
-        # ActiveMQ 配置信息
+        # 是否清除羽翼已有数据
         [Boolean] $clearData = $false
     )
    
@@ -1015,42 +985,27 @@ function InitZookeepperConfigs {
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
     $templatePath = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-template")
 
-    Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
+    Logger INFO("开始，初始化主从的 Zookeepper `【$templatePath`】配置信息 ")
 
 
+    $clusterServers= -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2883:3883", "`n")
 
     [ZookeeperConfig[]]$configs = [ZookeeperConfig[]]::new($count)
-
-    $configs[0] = [ZookeeperConfig]::new()
-    $configs[0].TemplatePath = $templatePath
-    $configs[0].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-2181")
-    $configs[0].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-2181")
-    $configs[0].ClientPort = 2181
-    $configs[0].EnableServer = $true
-    $configs[0].ServerPort = 8281
-    $configs[0].ClusterServers = -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2882:3883", "`n")
-    $configs[0].MyId = 1
-
-    $configs[1] = [ZookeeperConfig]::new()
-    $configs[1].TemplatePath = $templatePath
-    $configs[1].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-2182")
-    $configs[1].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-2182")
-    $configs[1].ClientPort = 2182
-    $configs[1].EnableServer = $true
-    $configs[1].ServerPort = 8282
-    $configs[1].ClusterServers = -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2882:3883", "`n")
-    $configs[1].MyId = 2
-
-    $configs[2] = [ZookeeperConfig]::new()
-    $configs[2].TemplatePath = $templatePath
-    $configs[2].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-2183")
-    $configs[2].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-2183")
-    $configs[2].ClientPort = 2183
-    $configs[2].EnableServer = $true
-    $configs[2].ServerPort = 8283
-    $configs[2].ClusterServers = -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2882:3883", "`n")
-    $configs[2].MyId = 3
-
+    $clientPort=2181
+    $serverPort=8281
+    $enableServer= $true
+    $myId=1
+    for ($i = 0; $i -lt $count; $i++) {
+        $configs[$i] = [ZookeeperConfig]::new()
+        $configs[$i].TemplatePath = $templatePath
+        $configs[$i].ClientPort =  $clientPort+$i
+        $configs[$i].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-"+$configs[$i].ClientPort)
+        $configs[$i].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-"+$configs[$i].ClientPort)
+        $configs[$i].EnableServer = $enableServer
+        $configs[$i].ServerPort = $serverPort+$i
+        $configs[$i].ClusterServers = $clusterServers
+        $configs[$i].MyId =   $myId+$i
+    }
 
     foreach ($config in $configs) {
         # 根据模板创建配置信息
@@ -1065,16 +1020,164 @@ function InitZookeepperConfigs {
 
         } 
 
+        # 复制配置信息
+        CopyZookeeperConfig  -sourcePath $config.Path -destPath $config.Path.Replace($mqClusterSourcePath, $mqClusterDestPath)
+
+    }  
+
+    Logger INFO("完成，初始化主从的 Zookeepper `【$templatePath`】配置信息 ")
+
+}
+
+<#
+    .DESCRIPTION
+        根据 ActiveMQ 主从的 Zookeeper 配置信息
+
+    .PARAMETER clearData
+        是否清除 data 数据
+        
+    .EXAMPLE
+      PS C:\> IniteMqConfigs -clearData $false
+
+     .EXAMPLE
+      PS C:\> IniteMqConfigs -clearData $true
+#>
+function InitMasterSlaveZookeepperConfigs {
+    [CmdletBinding()]
+    param(
+        # 是否清除羽翼已有数据
+        [Boolean] $clearData = $false
+    )
+   
+    $count = 3;
+    $mqClusterSourcePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster"
+    $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
+    $templatePath = -Join ($mqClusterSourcePath, "\MS\apache-zookeeper-template")
+
+    Logger INFO("开始，初始化主从的 Zookeepper `【$templatePath`】配置信息 ")
+
+
+    $clusterServers= -Join ("server.1=127.0.0.1:2891:3891", "`n", "server.2=127.0.0.1:2892:3892", "`n", "server.3=127.0.0.1:2893:3893", "`n")
+
+    [ZookeeperConfig[]]$configs = [ZookeeperConfig[]]::new($count)
+    $clientPort=2191
+    $serverPort=8291
+    $enableServer= $true
+    $myId=1
+    for ($i = 0; $i -lt $count; $i++) {
+        $configs[$i] = [ZookeeperConfig]::new()
+        $configs[$i].TemplatePath = $templatePath
+        $configs[$i].ClientPort =  $clientPort+$i
+        $configs[$i].Path = -Join ($mqClusterSourcePath, "\MS\apache-zookeeper-"+$configs[$i].ClientPort)
+        $configs[$i].DestPath = -Join ($mqClusterDestPath, "\MS\apache-zookeeper-"+$configs[$i].ClientPort)
+        $configs[$i].EnableServer = $enableServer
+        $configs[$i].ServerPort = $serverPort+$i
+        $configs[$i].ClusterServers = $clusterServers
+        $configs[$i].MyId =   $myId+$i
+    }
+
+    foreach ($config in $configs) {
+        # 根据模板创建配置信息
+        CreateZookeepperConfig $config 
+
+        if ($clearData -eq $true) {
+            $destDir = $config.Path.Replace($mqClusterSourcePath, $mqClusterDestPath)
+
+            ClearDir -path ( -Join ($destDir, '\data')) 
+
+            ClearDir -path ( -Join ($destDir, '\logs')) 
+
+        } 
 
         # 复制配置信息
         CopyZookeeperConfig  -sourcePath $config.Path -destPath $config.Path.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
-      
-
     }  
 
-    Logger INFO("完成，初始化`【$templatePath`】配置信息 ")
+    Logger INFO("完成，初始化主从的 Zookeepper `【$templatePath`】配置信息 ")
 
 }
+ 
 
-InitZookeepperConfigs -clearData $true
+<#
+    .DESCRIPTION
+        根据 Zookeeper 初始化 ActiveMQ 配置信息
+
+    .PARAMETER clearData
+        是否清除 data 数据
+        
+    .EXAMPLE
+      PS C:\> InitMasterSlaveMQConfigs -clearData $false
+
+     .EXAMPLE
+      PS C:\> InitMasterSlaveMQConfigs -clearData $true
+#>
+function InitMasterSlaveMQConfigs {
+    [CmdletBinding()]
+    param(
+        # 是否清除 ActiveMQ 目录下的 data 数据
+        [Boolean] $clearData = $false
+    )
+    #$mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
+    $mqClusterSourcePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster"
+    $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
+
+    $templatePath = -Join ( $mqClusterSourcePath, "\MS\apache-activemq-zookeeper-template")
+
+    Logger INFO("开始，初始化主从MQ `【$templatePath`】配置信息 ")
+    $brokerCount = 3;
+
+    [ActiveMQZookeeperConfig[]]$mqConfigs = [ActiveMQZookeeperConfig[]]::new($brokerCount)
+    $hubBrokerUri="static:(tcp://127.0.0.1:61612,tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
+    $brokerPort=61816
+    $jettyPort=8186
+    $replicas=1
+    $bindPort=61826
+    $zkAddress="127.0.0.1:2191,127.0.0.1:2192,127.0.0.1:2193"
+    $brockerHostName="127.0.0.1"
+    $zkPath= "/activemq/ms/leveldb-stores"
+    $networkConnectors= ""
+    for ($i = 0; $i -lt $brokerCount; $i++) {
+        $mqConfigs[$i] = [ActiveMQZookeeperConfig]::new()
+        $mqConfigs[$i].ClusterBrokerName = "ActiveMQ-MasterSlave"
+        $mqConfigs[$i].BrokerPort = ($brokerPort+$i)
+        $mqConfigs[$i].BrokerName = "ActiveMQ-MasterSlave-"+ $mqConfigs[$i].BrokerPort
+        $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\MS\apache-activemq-"+ $mqConfigs[$i].BrokerPort)
+        $mqConfigs[$i].HubBrokerUri = $hubBrokerUri
+        $mqConfigs[$i].JettyPort = ($jettyPort+1)
+        $mqConfigs[$i].TemplatePath = $templatePath
+        $mqConfigs[$i].Replicas = $replicas
+        $mqConfigs[$i].BindPort = ($bindPort+$i)
+        $mqConfigs[$i].ZkAddress =  $zkAddress
+        $mqConfigs[$i].ZkPassword = ""
+        $mqConfigs[$i].BrockerHostName = $brockerHostName
+        $mqConfigs[$i].Sync = "local_disk"
+        $mqConfigs[$i].ZkPath = $zkPath
+        $mqConfigs[$i].NetworkConnectors = $networkConnectors
+    }
+
+  
+
+    foreach ($config in $mqConfigs) {
+        # 根据模板创建配置信息
+        CreateMqConfigForZookeepper $config 
+
+        # 复制配置信息
+        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
+
+        if ($clearData -eq $true) {
+            #清除 data 数据
+            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
+        }
+    }  
+
+    Logger INFO("完成，初始化主从MQ `【$templatePath`】配置信息 ")
+
+   
+}
+
+#初始化 Zookeepper 配置信息
+InitMasterSlaveZookeepperConfigs  -clearData $true
+
+#初始化 MQ 配置信息
+InitMasterSlaveMQConfigs -clearData $true
