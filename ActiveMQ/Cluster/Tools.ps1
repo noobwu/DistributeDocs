@@ -622,6 +622,7 @@ function InitLoadBalanceMqConfigs
     $brokerCount = 3;
     [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
     $brokerPort = 61716
+    $jettyPort=8176
     for ($i = 0; $i -lt $brokerCount; $i++)
     {
         $mqConfigs[$i] = [ActiveMQConfig]::new()
@@ -630,7 +631,7 @@ function InitLoadBalanceMqConfigs
         $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-" + $mqConfigs[$i].BrokerPort)
         #网络连接器设置  http://activemq.apache.org/networks-of-brokers.html
         $hubMqConfigs[1].NetworkConnectors = ""
-        $mqConfigs[$i].JettyPort = 8176
+        $mqConfigs[$i].JettyPort = ( $jettyPort + $i)
         $mqConfigs[$i].TemplatePath = $templatePath
     }
 
