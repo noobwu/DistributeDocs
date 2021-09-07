@@ -108,7 +108,7 @@
 		</shutdownHooks>
 		<!--网络连接配置 http://activemq.apache.org/networks-of-brokers.html-->
 		<networkConnectors>
-            <networkConnector uri="static:(tcp://127.0.0.1:61712,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" />
+            <networkConnector uri="static:(tcp://127.0.0.1:61712,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" updateClusterClients="true" updateClusterClientsOnRemove="true" rebalanceClusterClients="true" />
         </networkConnectors>
 	</broker>
 	<!--
