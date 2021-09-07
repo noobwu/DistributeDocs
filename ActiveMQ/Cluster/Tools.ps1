@@ -5,10 +5,12 @@
     .DESCRIPTION
         设置日志
 #>
-function SetLoggergingVariables {
+function SetLoggergingVariables
+{
 
     #Already setup
-    if ($Script:Loggerging -and $Script:LevelNames) {
+    if ($Script:Loggerging -and $Script:LevelNames)
+    {
         return
     }
 
@@ -36,7 +38,8 @@ function SetLoggergingVariables {
     #$localHost = [System.Environment]::MachineName
 
     #New-Variable -Name ScriptRoot           -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($MyInvocation.MyCommand.Module.Path))
-    if ($null -eq $ScriptRoot) {
+    if ($null -eq $ScriptRoot)
+    {
         New-Variable -Name ScriptRoot           -Scope Script -Option ReadOnly -Value ([System.IO.Path]::GetDirectoryName($PSScriptRoot))
     }
     New-Variable -Name Defaults             -Scope Script -Option ReadOnly -Value @{
@@ -75,7 +78,8 @@ function SetLoggergingVariables {
         https://logging.readthedocs.io/en/latest/functions/Write-Logger.md
 
 #>
-function ReplaceToken {
+function ReplaceToken
+{
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
     [CmdletBinding()]
     param(
@@ -92,7 +96,8 @@ function ReplaceToken {
     #Write-Verbose "String:$($result)" -Verbose
     #Write-Verbose "Source:$($Source | ConvertTo-Json -Compress)" -Verbose
     #Write-Verbose "tokenMatcher:$($tokenMatcher | ConvertTo-Json -Compress)" -Verbose
-    foreach ($match in $tokenMatches) {
+    foreach ($match in $tokenMatches)
+    {
         $formattedEntry = [string]::Empty
         $tokenContent = [string]::Empty
 
@@ -102,22 +107,27 @@ function ReplaceToken {
         $padding = $match.Groups["padding"].value
 
         [hashtable] $dateParam = @{ }
-        if (-not [string]::IsNullOrWhiteSpace($token)) {
+        if (-not [string]::IsNullOrWhiteSpace($token))
+        {
             $tokenContent = $Source.$token
             $dateParam["Date"] = $tokenContent
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($datefmtU)) {
+        if (-not [string]::IsNullOrWhiteSpace($datefmtU))
+        {
             $formattedEntry = Get-Date @dateParam -UFormat $datefmtU
         }
-        elseif (-not [string]::IsNullOrWhiteSpace($datefmt)) {
+        elseif (-not [string]::IsNullOrWhiteSpace($datefmt))
+        {
             $formattedEntry = Get-Date @dateParam -Format $datefmt
         }
-        else {
+        else
+        {
             $formattedEntry = $tokenContent
         }
 
-        if ($padding) {
+        if ($padding)
+        {
             $formattedEntry = "{0,$padding}" -f $formattedEntry
         }
 
@@ -141,7 +151,8 @@ function ReplaceToken {
         PS C:\> Logger -Level ERROR -Message 'Hello, World!'
 
 #>
-function Logger {
+function Logger
+{
     [CmdletBinding()]
     param(
         #日志级别
@@ -150,7 +161,8 @@ function Logger {
         #日志信息
         [string] $message
     )
-    if ($null -ne $level) {
+    if ($null -ne $level)
+    {
         $level = 'DEBUG' 
     }
     $colorMapping = @{
@@ -178,10 +190,12 @@ function Logger {
 
     $logText = ReplaceToken -String "[%{timestamp:+%Y-%m-%d %T%Z}] [%{level:-7}]  [%{caller}]  [%{lineno}] %{message}" -Source $log
     #$logText = ($Log | ConvertTo-Json -Compress)
-    if ($colorMapping.ContainsKey($level)) {
+    if ($colorMapping.ContainsKey($level))
+    {
         $Host.UI.WriteLine($colorMapping[$level], $Host.UI.RawUI.BackgroundColor, $logText)
     }
-    else {
+    else
+    {
         $Host.UI.WriteLine($logText)
     }
     $Host.UI.WriteLine($($Logger | ConvertTo-Json -Compress))
@@ -197,7 +211,8 @@ function Logger {
     .EXAMPLE
       PS C:\> CreateDir $dirPath
 #> 
-function CreateDir {
+function CreateDir
+{
     [CmdletBinding()]
     param(
         [string] $dirPath
@@ -205,7 +220,8 @@ function CreateDir {
     
     # Logger DEBUG("dirPath:`"$dirPath`"")
 
-    if ((Test-Path -Path $dirPath)) {
+    if ((Test-Path -Path $dirPath))
+    {
         return
     }
 
@@ -225,7 +241,8 @@ function CreateDir {
     .EXAMPLE
       PS C:\> CopyFolder $mqPaths
 #> 
-function CopyFolder {
+function CopyFolder
+{
     param
     (
         #源文件或者文件夹地址
@@ -238,13 +255,16 @@ function CopyFolder {
     $sourcePath = [System.IO.Path]::Combine($sourcePath, "*")
       
 
-    if (!(Test-Path -Path $sourcePath)) {
+    if (!(Test-Path -Path $sourcePath))
+    {
         log WARNING("CopyFolder  Folder   `"$sourcePath`" no exists.")
         return			
     }
-    if (!(Test-Path -Path $desFolder)) {
+    if (!(Test-Path -Path $desFolder))
+    {
         New-Item $desFolder -Type Directory
-        if (!(Test-Path -Path $desFolder)) {
+        if (!(Test-Path -Path $desFolder))
+        {
             return
         }
     }
@@ -270,7 +290,8 @@ function CopyFolder {
     .EXAMPLE
       PS C:\> CopyFolder $mqPaths
 #> 
-function CopyOneItem {
+function CopyOneItem
+{
     param
     (
         #源文件或者文件夹地址
@@ -280,22 +301,27 @@ function CopyOneItem {
         [string] 
         $desFolder
     )
-    if (!(Test-Path -Path $sourcePath)) {
+    if (!(Test-Path -Path $sourcePath))
+    {
         Logger WARNING("CopyOneItem  file   `"$sourcePath`" no exists.")
         return			
     }
-    if (!(Test-Path -Path $desFolder)) {
+    if (!(Test-Path -Path $desFolder))
+    {
         New-Item $desFolder -Type Directory
-        if (!(Test-Path -Path $desFolder)) {
+        if (!(Test-Path -Path $desFolder))
+        {
             return
         }
     }
     # Logger  DEBUG("Copy directory from `"$sourcePath`"  start.")	
 
-    if ($sourcePath -is [System.IO.DirectoryInfo]) {
+    if ($sourcePath -is [System.IO.DirectoryInfo])
+    {
         CopyFolder -sourcePath $sourcePath -desFolder $desFolder
     }
-    else {
+    else
+    {
         Copy-Item -Path $sourcePath -Destination $desFolder -Force
         # Logger INFO("Copy file from  `"$sourcePath`" to `"$desFolder`" successfully.")			 
     }
@@ -312,16 +338,19 @@ function CopyOneItem {
       PS C:\> ClearMqData @("D:\Tools\MQ\ActiveMQ-Cluster\LB\apache-activemq-61716")
     
 #>
-function ClearDir {
+function ClearDir
+{
     [CmdletBinding()]
     param(
         # 目录地址
         [string] $path
     )
-    If (([String]::IsNullOrEmpty($path))) {
+    If (([String]::IsNullOrEmpty($path)))
+    {
         throw "路径不能为空"
     }
-    if (!(Test-Path -Path $path)) {
+    if (!(Test-Path -Path $path))
+    {
         throw "路径地址[`($path)`]不存在"
     } 
 
@@ -343,16 +372,19 @@ function ClearDir {
       PS C:\> ClearMqData @("D:\Tools\MQ\ActiveMQ-Cluster\LB\apache-activemq-61716")
 
 #>
-function ClearMqData {
+function ClearMqData
+{
     [CmdletBinding()]
     param(
         # ActiveMQ 所在目录
         [string] $mqPath
     )
-    If (([String]::IsNullOrEmpty($mqPath))) {
+    If (([String]::IsNullOrEmpty($mqPath)))
+    {
         throw "路径不能为空"
     }
-    if (!(Test-Path -Path $mqPath)) {
+    if (!(Test-Path -Path $mqPath))
+    {
         throw "路径地址[`($mqPath)`]不存在"
     } 
     $dataPath = -Join ($mqPath, '\data')
@@ -374,7 +406,8 @@ function ClearMqData {
       PS C:\> CopyMqConfig 
     
 #>
-function CopyMqConfig {
+function CopyMqConfig
+{
     [CmdletBinding()]
     param(
         # ActiveMQ 来源目录
@@ -382,10 +415,12 @@ function CopyMqConfig {
         # ActiveMQ 目标目录
         [string]$destPath
     )
-    If (([String]::IsNullOrEmpty($sourcePath))) {
+    If (([String]::IsNullOrEmpty($sourcePath)))
+    {
         throw "目录地址不能为空"
     }
-    if (!(Test-Path -Path $sourcePath)) {
+    if (!(Test-Path -Path $sourcePath))
+    {
         throw "目录地址[`($sourcePath)`]不存在"
     } 
     # ActiveMQ 启动配置文件
@@ -415,7 +450,8 @@ function CopyMqConfig {
 <# 
     ActiveMQ 配置信息
  #>
-class ActiveMQConfig {
+class ActiveMQConfig
+{
     # 模板目录 D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster\LB\apache-activemq-broker-template
     [string]$TemplatePath
 
@@ -438,7 +474,8 @@ class ActiveMQConfig {
     # Broker管理后台端口 8176
     [int]$JettyPort
 
-    [string]ToString() {
+    [string]ToString()
+    {
         return ("TemplatePath:{0},BrokerPath:{1},BrokerName:{2},BrokerPort:{3},HubBrokerUri:{4},JettyPort:{5}" -f $this.TemplatePath, $this.BrokerPath, $this.BrokerName, $this.BrokerPort, $this.HubBrokerUri, $this.JettyPort)
     }
 
@@ -467,13 +504,15 @@ class ActiveMQConfig {
     
       PS C:\> CreateMqConfig $mqConfig
 #>
-function CreateMqConfig {
+function CreateMqConfig
+{
     [CmdletBinding()]
     param(
         # ActiveMQ 配置信息
         [ActiveMQConfig] $config
     )
-    if ($null -eq $config) {
+    if ($null -eq $config)
+    {
         Logger ERROR("ActiveMQ 配置信息不能为空")
         return;
     }
@@ -489,9 +528,6 @@ function CreateMqConfig {
 
     (Get-Content $srcWrapperConfigPath) | ForEach-Object {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
-            -replace '{{BrokerPort}}', $config.BrokerPort `
-            -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
-            -replace '{{JettyPort}}', $config.JettyPort `
     } | Set-Content $destWrapperConfigPath
 
 
@@ -501,8 +537,7 @@ function CreateMqConfig {
     (Get-Content $srcActiveMQConfigPath -Encoding UTF8) | ForEach-Object {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
-            -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
-            -replace '{{JettyPort}}', $config.JettyPort `
+            -replace '{{NetworkConnectors}}', $config.NetworkConnectors `
     } | Set-Content $destActiveMQConfigPath -Encoding UTF8
  
     $srcJettyConfigPath = Join-Path -Path $config.TemplatePath -ChildPath "conf\jetty.xml"
@@ -510,8 +545,6 @@ function CreateMqConfig {
 
     (Get-Content $srcJettyConfigPath -Encoding UTF8) | ForEach-Object {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
-            -replace '{{BrokerPort}}', $config.BrokerPort `
-            -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
             -replace '{{JettyPort}}', $config.JettyPort `
     } | Set-Content $destJettyConfigPath -Encoding UTF8
 
@@ -530,82 +563,94 @@ function CreateMqConfig {
      .EXAMPLE
       PS C:\> IniteMqConfigs -clearData $true
 #>
-function InitMqConfigs {
+function InitLoadBalanceMqConfigs
+{
     [CmdletBinding()]
     param(
         # ActiveMQ 配置信息
         [Boolean] $clearData = $false
     )
-    $mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
+    #$mqClusterSourcePath = "D:\Projects\Github\NoobWu\DistributeDocs\ActiveMQ\Cluster"
+    $mqClusterSourcePath = "F:\Projects\NoobWu\DistributeDocs\ActiveMQ\Cluster"
     $mqClusterDestPath = "D:\Tools\MQ\ActiveMQ-Cluster"
     $templatePath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-template")
-    $brokerCount = 5;
+
 
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
-
-    [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
-    for ($i = 0; $i -lt $brokerCount; $i++) {
-        
-    }
+    $hubBrokerCount = 2;
+    [ActiveMQConfig[]]$hubMqConfigs = [ActiveMQConfig[]]::new($hubBrokerCount)
 
     #region  集线 Broker（给生产者使用）
-    $mqConfigs[0] = [ActiveMQConfig]::new()
-    $mqConfigs[0].BrokerName = "ActiveMQ-LB-Hub-61711"
-    $mqConfigs[0].BrokerPort = 61711
-    $mqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61711")
-    $mqConfigs[0].HubBrokerUri = "static:(tcp://127.0.0.1:61712,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)"
-    $mqConfigs[0].JettyPort = 8171
-    $mqConfigs[0].TemplatePath = $templatePath
+    $hubMqConfigs[0] = [ActiveMQConfig]::new()
+    $hubMqConfigs[0].BrokerName = "ActiveMQ-LB-Hub-61711"
+    $hubMqConfigs[0].BrokerPort = 61711
+    $hubMqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61711")
+    #网络连接器设置  http://activemq.apache.org/networks-of-brokers.html
+    $hubMqConfigs[0].NetworkConnectors = ( -Join ("<networkConnectors>", "`n", '            <networkConnector uri="static:(tcp://127.0.0.1:61712,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" />', "`n", "        </networkConnectors>")  )
+    $hubMqConfigs[0].JettyPort = 8171
+    $hubMqConfigs[0].TemplatePath = $templatePath
 
-    $mqConfigs[1] = [ActiveMQConfig]::new()
-    $mqConfigs[1].BrokerName = "ActiveMQ-LB-Hub-61712"
-    $mqConfigs[1].BrokerPort = 61712
-    $mqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61712")
-    $mqConfigs[1].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)"
-    $mqConfigs[1].JettyPort = 8172
-    $mqConfigs[1].TemplatePath = $templatePath
-    #endregion 集线 Broker（给生产者使用）
-	
+    $hubMqConfigs[1] = [ActiveMQConfig]::new()
+    $hubMqConfigs[1].BrokerName = "ActiveMQ-LB-Hub-61712"
+    $hubMqConfigs[1].BrokerPort = 61712
+    $hubMqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61712")
+    #网络连接器设置  http://activemq.apache.org/networks-of-brokers.html
+    $hubMqConfigs[1].NetworkConnectors = ( -Join ("<networkConnectors>", "`n", '            <networkConnector uri="static:(tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" />', "`n", "          </networkConnectors>")  )
+    $hubMqConfigs[1].JettyPort = 8172
+    $hubMqConfigs[1].TemplatePath = $templatePath
 
-    #region  消费Broker（给消费者使用）
-    $mqConfigs[2] = [ActiveMQConfig]::new()
-    $mqConfigs[2].BrokerName = "ActiveMQ-LB-61716"
-    $mqConfigs[2].BrokerPort = 61716
-    $mqConfigs[2].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-61716")
-    $mqConfigs[2].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
-    $mqConfigs[2].JettyPort = 8176
-    $mqConfigs[2].TemplatePath = $templatePath
-
-    $mqConfigs[3] = [ActiveMQConfig]::new()
-    $mqConfigs[3].BrokerName = "ActiveMQ-LB-61717"
-    $mqConfigs[3].BrokerPort = 61717
-    $mqConfigs[3].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-61717")
-    $mqConfigs[3].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
-    $mqConfigs[3].JettyPort = 8177
-    $mqConfigs[3].TemplatePath = $templatePath
-
-    $mqConfigs[4] = [ActiveMQConfig]::new()
-    $mqConfigs[4].BrokerName = "ActiveMQ-LB-61718"
-    $mqConfigs[4].BrokerPort = 61718
-    $mqConfigs[4].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-61718")
-    $mqConfigs[4].HubBrokerUri = "static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61712)"
-    $mqConfigs[4].JettyPort = 8178
-    $mqConfigs[4].TemplatePath = $templatePath
-
-    #endregion
-
-    foreach ($config in $mqConfigs) {
+    foreach ($config in  $hubMqConfigs)
+    {
         # 根据模板创建配置信息
         CreateMqConfig $config 
 
         # 复制配置信息
         CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
-        if ($clearData -eq $true) {
+        if ($clearData -eq $true)
+        {
             #清除 data 数据
             ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
         }
     }  
+
+    #endregion 集线 Broker（给生产者使用）
+   
+	
+
+    #region  消费Broker（给消费者使用）
+    $brokerCount = 3;
+    [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
+    $brokerPort = 61716
+    for ($i = 0; $i -lt $brokerCount; $i++)
+    {
+        $mqConfigs[$i] = [ActiveMQConfig]::new()
+        $mqConfigs[$i].BrokerPort = ($brokerPort + $i)
+        $mqConfigs[$i].BrokerName = "ActiveMQ-LB-" + $mqConfigs[$i].BrokerPort
+        $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-" + $mqConfigs[$i].BrokerPort)
+        #网络连接器设置  http://activemq.apache.org/networks-of-brokers.html
+        $hubMqConfigs[1].NetworkConnectors = ""
+        $mqConfigs[$i].JettyPort = 8176
+        $mqConfigs[$i].TemplatePath = $templatePath
+    }
+
+    foreach ($config in $mqConfigs)
+    {
+        # 根据模板创建配置信息
+        CreateMqConfig $config 
+
+        #复制配置信息
+        CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
+
+        if ($clearData -eq $true)
+        {
+            # 清除 data 数据
+            ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
+        }
+    }  
+    
+    #endregion
+
 
     Logger INFO("完成，初始化`【$templatePath`】配置信息 ")
    
@@ -617,7 +662,8 @@ function InitMqConfigs {
 <# 
     ActiveMQ  配置信息(Zookeeper配置主)
  #>
-class ActiveMQZookeeperConfig:ActiveMQConfig {
+class ActiveMQZookeeperConfig:ActiveMQConfig
+{
     #同一个主从 Broker的名称一定要一样
     [string]$ClusterBrokerName
      
@@ -663,13 +709,15 @@ class ActiveMQZookeeperConfig:ActiveMQConfig {
     
       PS C:\> CreateMqConfigForZookeepper $mqConfig
 #>
-function CreateMqConfigForZookeepper {
+function CreateMqConfigForZookeepper
+{
     [CmdletBinding()]
     param(
         # ActiveMQ 配置信息
         [ActiveMQZookeeperConfig] $config
     )
-    if ($null -eq $config) {
+    if ($null -eq $config)
+    {
         Logger ERROR("ActiveMQ 配置信息不能为空")
         return;
     }
@@ -695,7 +743,6 @@ function CreateMqConfigForZookeepper {
         $_ -replace '{{BrokerName}}', $config.BrokerName `
             -replace '{{ClusterBrokerName}}', $config.ClusterBrokerName `
             -replace '{{BrokerPort}}', $config.BrokerPort `
-            -replace '{{HubBrokerUri}}', $config.HubBrokerUri `
             -replace '{{Replicas}}', $config.Replicas `
             -replace '{{BindPort}}', $config.BindPort `
             -replace '{{ZkAddress}}', $config.ZkAddress `
@@ -730,7 +777,8 @@ function CreateMqConfigForZookeepper {
       PS C:\> CopyMqConfig 
     
 #>
-function CopyZookeeperConfig {
+function CopyZookeeperConfig
+{
     [CmdletBinding()]
     param(
         # Zookeeper 来源目录
@@ -738,10 +786,12 @@ function CopyZookeeperConfig {
         # Zookeeper 目标目录
         [string]$destPath
     )
-    If (([String]::IsNullOrEmpty($sourcePath))) {
+    If (([String]::IsNullOrEmpty($sourcePath)))
+    {
         throw "目录地址不能为空"
     }
-    if (!(Test-Path -Path $sourcePath)) {
+    if (!(Test-Path -Path $sourcePath))
+    {
         throw "目录地址[`($sourcePath)`]不存在"
     } 
     # Zookeeper 启动配置文件
@@ -774,7 +824,8 @@ function CopyZookeeperConfig {
      .EXAMPLE
       PS C:\> IniteMqConfigs -clearData $true
 #>
-function InitHAMqConfigsForZookeeper {
+function InitHAMqConfigsForZookeeper
+{
     [CmdletBinding()]
     param(
         # 是否清除 ActiveMQ 目录下的 data 数据
@@ -790,40 +841,43 @@ function InitHAMqConfigsForZookeeper {
     $hubBrokerCount = 3;
 
     [ActiveMQZookeeperConfig[]]$hubMQConfigs = [ActiveMQZookeeperConfig[]]::new($hubBrokerCount)
-    $hubBrokerUri="static:(tcp://127.0.0.1:61612,tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
-    $hubBrokerPort=61611
-    $hubJettyPort=8161
-    $hubReplicas=1
-    $hubBindPort=61621
-    $hubZkAddress="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
-    $hubBrockerHostName="127.0.0.1"
-    $hubZkPath= "/activemq/ha/leveldb-stores"
-    for ($i = 0; $i -lt $hubBrokerCount; $i++) {
+    $hubBrokerUri = "static:(tcp://127.0.0.1:61612,tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
+    $hubBrokerPort = 61611
+    $hubJettyPort = 8161
+    $hubReplicas = 1
+    $hubBindPort = 61621
+    $hubZkAddress = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
+    $hubBrockerHostName = "127.0.0.1"
+    $hubZkPath = "/activemq/ha/leveldb-stores"
+    for ($i = 0; $i -lt $hubBrokerCount; $i++)
+    {
         $hubMQConfigs[$i] = [ActiveMQZookeeperConfig]::new()
         $hubMQConfigs[$i].ClusterBrokerName = "ActiveMQ-HA-Hub"
-        $hubMQConfigs[$i].BrokerPort = $hubBrokerPort+$i
-        $hubMQConfigs[$i].BrokerName = "ActiveMQ-HA-Hub-"+ $hubMQConfigs[$i].BrokerPort
+        $hubMQConfigs[$i].BrokerPort = $hubBrokerPort + $i
+        $hubMQConfigs[$i].BrokerName = "ActiveMQ-HA-Hub-" + $hubMQConfigs[$i].BrokerPort
         $hubMQConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-hub-61611")
         $hubMQConfigs[$i].HubBrokerUri = $hubBrokerUri
-        $hubMQConfigs[$i].JettyPort = $hubJettyPort+1
+        $hubMQConfigs[$i].JettyPort = $hubJettyPort + 1
         $hubMQConfigs[$i].TemplatePath = $hubMQTemplatePath
         $hubMQConfigs[$i].Replicas = $hubReplicas
-        $hubMQConfigs[$i].BindPort = $hubBindPort+1
-        $hubMQConfigs[$i].ZkAddress =   $hubZkAddress
+        $hubMQConfigs[$i].BindPort = $hubBindPort + 1
+        $hubMQConfigs[$i].ZkAddress = $hubZkAddress
         $hubMQConfigs[$i].ZkPassword = ""
         $hubMQConfigs[$i].BrockerHostName = $hubBrockerHostName
         $hubMQConfigs[$i].Sync = "local_disk"
         $hubMQConfigs[$i].ZkPath = $hubZkPath
     }
 
-    foreach ($hubConfig in $hubMQConfigs) {
+    foreach ($hubConfig in $hubMQConfigs)
+    {
         # 根据模板创建配置信息
         CreateMqConfigForZookeepper $hubConfig 
 
         # 复制配置信息
         CopyMqConfig  -sourcePath $hubConfig.BrokerPath -destPath $hubConfig.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
-        if ($clearData -eq $true) {
+        if ($clearData -eq $true)
+        {
             #清除 data 数据
             ClearMqData -mqPath $hubConfig.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
         }
@@ -836,28 +890,31 @@ function InitHAMqConfigsForZookeeper {
     $brokerCount = 3;
     Logger INFO("开始，初始化`【$templatePath`】配置信息 ")
     [ActiveMQConfig[]]$mqConfigs = [ActiveMQConfig[]]::new($brokerCount)
-    $brokerPort=61616
-    $jettyPort=8166
-    for ($i = 0; $i -lt $brokerCount; $i++) {
+    $brokerPort = 61616
+    $jettyPort = 8166
+    for ($i = 0; $i -lt $brokerCount; $i++)
+    {
         $mqConfigs[$i] = [ActiveMQConfig]::new()
-        $mqConfigs[$i].BrokerPort =  ($brokerPort+$i)
-        $mqConfigs[$i].BrokerName = "ActiveMQ-HA-"+ $mqConfigs[$i].BrokerPort
-        $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-"+ $mqConfigs[$i].BrokerPort)
+        $mqConfigs[$i].BrokerPort = ($brokerPort + $i)
+        $mqConfigs[$i].BrokerName = "ActiveMQ-HA-" + $mqConfigs[$i].BrokerPort
+        $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\HA\apache-activemq-" + $mqConfigs[$i].BrokerPort)
         $mqConfigs[$i].HubBrokerUri = "masterslave:(tcp://127.0.0.1:61611,tcp://127.0.0.1:61612,tcp://127.0.0.1:61613)"
-        $mqConfigs[$i].JettyPort =  ($jettyPort+$i)
+        $mqConfigs[$i].JettyPort = ($jettyPort + $i)
         $mqConfigs[$i].TemplatePath = $templatePath
     }
 
     #endregion
 
-    foreach ($config in $mqConfigs) {
+    foreach ($config in $mqConfigs)
+    {
         # 根据模板创建配置信息
         CreateMqConfig $config 
 
         # 复制配置信息
         CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
-        if ($clearData -eq $true) {
+        if ($clearData -eq $true)
+        {
             #清除 data 数据
             ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
         }
@@ -872,7 +929,8 @@ function InitHAMqConfigsForZookeeper {
 <# 
     Zookeeper 配置信息
  #>
-class ZookeeperConfig {
+class ZookeeperConfig
+{
     #  参数文档 https://github.com/HelloGitHub-Team/HelloZooKeeper/blob/main/content/6/content.md
     #当前节点的 myid yid 只要是不等于 -1 就行（-1 是一个固定的值会导致当前节点启动报错），不能大于 Long.MAX_VALUE 或者小于 Long.MIN_VALUE
     [int]$MyId
@@ -917,13 +975,15 @@ class ZookeeperConfig {
     
       PS C:\> CreateZookeepperConfig $config
 #>
-function CreateZookeepperConfig {
+function CreateZookeepperConfig
+{
     [CmdletBinding()]
     param(
         # ActiveMQ 配置信息
         [ZookeeperConfig] $config
     )
-    if ($null -eq $config) {
+    if ($null -eq $config)
+    {
         Logger ERROR("Zookeepper 配置信息不能为空")
         return;
     }
@@ -973,7 +1033,8 @@ function CreateZookeepperConfig {
      .EXAMPLE
       PS C:\> InitHAZookeepperConfigs -clearData $true
 #>
-function InitHAZookeepperConfigs {
+function InitHAZookeepperConfigs
+{
     [CmdletBinding()]
     param(
         # 是否清除羽翼已有数据
@@ -988,30 +1049,33 @@ function InitHAZookeepperConfigs {
     Logger INFO("开始，初始化主从的 Zookeepper `【$templatePath`】配置信息 ")
 
 
-    $clusterServers= -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2883:3883", "`n")
+    $clusterServers = -Join ("server.1=127.0.0.1:2881:3881", "`n", "server.2=127.0.0.1:2882:3882", "`n", "server.3=127.0.0.1:2883:3883", "`n")
 
     [ZookeeperConfig[]]$configs = [ZookeeperConfig[]]::new($count)
-    $clientPort=2181
-    $serverPort=8281
-    $enableServer= $true
-    $myId=1
-    for ($i = 0; $i -lt $count; $i++) {
+    $clientPort = 2181
+    $serverPort = 8281
+    $enableServer = $true
+    $myId = 1
+    for ($i = 0; $i -lt $count; $i++)
+    {
         $configs[$i] = [ZookeeperConfig]::new()
         $configs[$i].TemplatePath = $templatePath
-        $configs[$i].ClientPort =  $clientPort+$i
-        $configs[$i].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-"+$configs[$i].ClientPort)
-        $configs[$i].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-"+$configs[$i].ClientPort)
+        $configs[$i].ClientPort = $clientPort + $i
+        $configs[$i].Path = -Join ($mqClusterSourcePath, "\HA\apache-zookeeper-" + $configs[$i].ClientPort)
+        $configs[$i].DestPath = -Join ($mqClusterDestPath, "\HA\apache-zookeeper-" + $configs[$i].ClientPort)
         $configs[$i].EnableServer = $enableServer
-        $configs[$i].ServerPort = $serverPort+$i
+        $configs[$i].ServerPort = $serverPort + $i
         $configs[$i].ClusterServers = $clusterServers
-        $configs[$i].MyId =   $myId+$i
+        $configs[$i].MyId = $myId + $i
     }
 
-    foreach ($config in $configs) {
+    foreach ($config in $configs)
+    {
         # 根据模板创建配置信息
         CreateZookeepperConfig $config 
 
-        if ($clearData -eq $true) {
+        if ($clearData -eq $true)
+        {
             $destDir = $config.Path.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
             ClearDir -path ( -Join ($destDir, '\data')) 
@@ -1042,7 +1106,8 @@ function InitHAZookeepperConfigs {
      .EXAMPLE
       PS C:\> IniteMqConfigs -clearData $true
 #>
-function InitMasterSlaveZookeepperConfigs {
+function InitMasterSlaveZookeepperConfigs
+{
     [CmdletBinding()]
     param(
         # 是否清除羽翼已有数据
@@ -1057,30 +1122,33 @@ function InitMasterSlaveZookeepperConfigs {
     Logger INFO("开始，初始化主从的 Zookeepper `【$templatePath`】配置信息 ")
 
 
-    $clusterServers= -Join ("server.1=127.0.0.1:2891:3891", "`n", "server.2=127.0.0.1:2892:3892", "`n", "server.3=127.0.0.1:2893:3893", "`n")
+    $clusterServers = -Join ("server.1=127.0.0.1:2891:3891", "`n", "server.2=127.0.0.1:2892:3892", "`n", "server.3=127.0.0.1:2893:3893", "`n")
 
     [ZookeeperConfig[]]$configs = [ZookeeperConfig[]]::new($count)
-    $clientPort=2191
-    $serverPort=8291
-    $enableServer= $true
-    $myId=1
-    for ($i = 0; $i -lt $count; $i++) {
+    $clientPort = 2191
+    $serverPort = 8291
+    $enableServer = $true
+    $myId = 1
+    for ($i = 0; $i -lt $count; $i++)
+    {
         $configs[$i] = [ZookeeperConfig]::new()
         $configs[$i].TemplatePath = $templatePath
-        $configs[$i].ClientPort =  $clientPort+$i
-        $configs[$i].Path = -Join ($mqClusterSourcePath, "\MS\apache-zookeeper-"+$configs[$i].ClientPort)
-        $configs[$i].DestPath = -Join ($mqClusterDestPath, "\MS\apache-zookeeper-"+$configs[$i].ClientPort)
+        $configs[$i].ClientPort = $clientPort + $i
+        $configs[$i].Path = -Join ($mqClusterSourcePath, "\MS\apache-zookeeper-" + $configs[$i].ClientPort)
+        $configs[$i].DestPath = -Join ($mqClusterDestPath, "\MS\apache-zookeeper-" + $configs[$i].ClientPort)
         $configs[$i].EnableServer = $enableServer
-        $configs[$i].ServerPort = $serverPort+$i
+        $configs[$i].ServerPort = $serverPort + $i
         $configs[$i].ClusterServers = $clusterServers
-        $configs[$i].MyId =   $myId+$i
+        $configs[$i].MyId = $myId + $i
     }
 
-    foreach ($config in $configs) {
+    foreach ($config in $configs)
+    {
         # 根据模板创建配置信息
         CreateZookeepperConfig $config 
 
-        if ($clearData -eq $true) {
+        if ($clearData -eq $true)
+        {
             $destDir = $config.Path.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
             ClearDir -path ( -Join ($destDir, '\data')) 
@@ -1112,7 +1180,8 @@ function InitMasterSlaveZookeepperConfigs {
      .EXAMPLE
       PS C:\> InitMasterSlaveMQConfigs -clearData $true
 #>
-function InitMasterSlaveMQConfigs {
+function InitMasterSlaveMQConfigs
+{
     [CmdletBinding()]
     param(
         # 是否清除 ActiveMQ 目录下的 data 数据
@@ -1128,27 +1197,28 @@ function InitMasterSlaveMQConfigs {
     $brokerCount = 3;
 
     [ActiveMQZookeeperConfig[]]$mqConfigs = [ActiveMQZookeeperConfig[]]::new($brokerCount)
-    $hubBrokerUri="static:(tcp://127.0.0.1:61612,tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
-    $brokerPort=61816
-    $jettyPort=8186
-    $replicas=1
-    $bindPort=61826
-    $zkAddress="127.0.0.1:2191,127.0.0.1:2192,127.0.0.1:2193"
-    $brockerHostName="127.0.0.1"
-    $zkPath= "/activemq/ms/leveldb-stores"
-    $networkConnectors= ""
-    for ($i = 0; $i -lt $brokerCount; $i++) {
+    $hubBrokerUri = "static:(tcp://127.0.0.1:61612,tcp://127.0.0.1:61616,tcp://127.0.0.1:61617,tcp://127.0.0.1:61618)"
+    $brokerPort = 61816
+    $jettyPort = 8186
+    $replicas = 1
+    $bindPort = 61826
+    $zkAddress = "127.0.0.1:2191,127.0.0.1:2192,127.0.0.1:2193"
+    $brockerHostName = "127.0.0.1"
+    $zkPath = "/activemq/ms/leveldb-stores"
+    $networkConnectors = ""
+    for ($i = 0; $i -lt $brokerCount; $i++)
+    {
         $mqConfigs[$i] = [ActiveMQZookeeperConfig]::new()
         $mqConfigs[$i].ClusterBrokerName = "ActiveMQ-MasterSlave"
-        $mqConfigs[$i].BrokerPort = ($brokerPort+$i)
-        $mqConfigs[$i].BrokerName = "ActiveMQ-MasterSlave-"+ $mqConfigs[$i].BrokerPort
-        $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\MS\apache-activemq-"+ $mqConfigs[$i].BrokerPort)
+        $mqConfigs[$i].BrokerPort = ($brokerPort + $i)
+        $mqConfigs[$i].BrokerName = "ActiveMQ-MasterSlave-" + $mqConfigs[$i].BrokerPort
+        $mqConfigs[$i].BrokerPath = -Join ($mqClusterSourcePath, "\MS\apache-activemq-" + $mqConfigs[$i].BrokerPort)
         $mqConfigs[$i].HubBrokerUri = $hubBrokerUri
-        $mqConfigs[$i].JettyPort = ($jettyPort+1)
+        $mqConfigs[$i].JettyPort = ($jettyPort + 1)
         $mqConfigs[$i].TemplatePath = $templatePath
         $mqConfigs[$i].Replicas = $replicas
-        $mqConfigs[$i].BindPort = ($bindPort+$i)
-        $mqConfigs[$i].ZkAddress =  $zkAddress
+        $mqConfigs[$i].BindPort = ($bindPort + $i)
+        $mqConfigs[$i].ZkAddress = $zkAddress
         $mqConfigs[$i].ZkPassword = ""
         $mqConfigs[$i].BrockerHostName = $brockerHostName
         $mqConfigs[$i].Sync = "local_disk"
@@ -1158,14 +1228,16 @@ function InitMasterSlaveMQConfigs {
 
   
 
-    foreach ($config in $mqConfigs) {
+    foreach ($config in $mqConfigs)
+    {
         # 根据模板创建配置信息
         CreateMqConfigForZookeepper $config 
 
         # 复制配置信息
         CopyMqConfig  -sourcePath $config.BrokerPath -destPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
 
-        if ($clearData -eq $true) {
+        if ($clearData -eq $true)
+        {
             #清除 data 数据
             ClearMqData -mqPath $config.BrokerPath.Replace($mqClusterSourcePath, $mqClusterDestPath)
         }
@@ -1177,7 +1249,10 @@ function InitMasterSlaveMQConfigs {
 }
 
 #初始化 Zookeepper 配置信息
-InitMasterSlaveZookeepperConfigs  -clearData $true
+#InitMasterSlaveZookeepperConfigs  -clearData $true
 
 #初始化 MQ 配置信息
-InitMasterSlaveMQConfigs -clearData $true
+#InitMasterSlaveMQConfigs -clearData $true
+
+#初始化负载均衡 MQ 配置信息
+InitLoadBalanceMqConfigs  -clearData $true

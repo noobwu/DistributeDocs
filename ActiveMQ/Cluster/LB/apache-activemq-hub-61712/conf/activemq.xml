@@ -1,4 +1,4 @@
-<!--
+﻿<!--
     Licensed to the Apache Software Foundation (ASF) under one or more
     contributor license agreements.  See the NOTICE file distributed with
     this work for additional information regarding copyright ownership.
@@ -106,9 +106,10 @@
 		<shutdownHooks>
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook"/>
 		</shutdownHooks>
+		<!--网络连接配置 http://activemq.apache.org/networks-of-brokers.html-->
 		<networkConnectors>
-			<networkConnector uri="static:(tcp://127.0.0.1:61711,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" />
-		</networkConnectors>
+            <networkConnector uri="static:(tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" />
+          </networkConnectors>
 	</broker>
 	<!--
         Enable web consoles, REST and Ajax APIs and demos

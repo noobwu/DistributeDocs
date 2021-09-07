@@ -106,9 +106,8 @@
 		<shutdownHooks>
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook"/>
 		</shutdownHooks>
-		<networkConnectors>
-			<networkConnector uri="{{HubBrokerUri}}" />
-		</networkConnectors>
+		<!--网络连接配置 http://activemq.apache.org/networks-of-brokers.html-->
+		{{NetworkConnectors}}
 	</broker>
 	<!--
         Enable web consoles, REST and Ajax APIs and demos
