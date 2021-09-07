@@ -586,7 +586,7 @@ function InitLoadBalanceMqConfigs
     $hubMqConfigs[0].BrokerPort = 61711
     $hubMqConfigs[0].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61711")
     #网络连接器设置  http://activemq.apache.org/networks-of-brokers.html
-    $hubMqConfigs[0].NetworkConnectors = ( -Join ("<networkConnectors>", "`n", '            <networkConnector uri="static:(tcp://127.0.0.1:61712,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" />', "`n", "        </networkConnectors>")  )
+    $hubMqConfigs[0].NetworkConnectors = ( -Join ("<networkConnectors>", "`n", '            <networkConnector uri="static:(tcp://127.0.0.1:61712,tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" updateClusterClients="true" updateClusterClientsOnRemove="true" rebalanceClusterClients="true" />', "`n", "        </networkConnectors>")  )
     $hubMqConfigs[0].JettyPort = 8171
     $hubMqConfigs[0].TemplatePath = $templatePath
 
@@ -595,7 +595,7 @@ function InitLoadBalanceMqConfigs
     $hubMqConfigs[1].BrokerPort = 61712
     $hubMqConfigs[1].BrokerPath = -Join ($mqClusterSourcePath, "\LB\apache-activemq-hub-61712")
     #网络连接器设置  http://activemq.apache.org/networks-of-brokers.html
-    $hubMqConfigs[1].NetworkConnectors = ( -Join ("<networkConnectors>", "`n", '            <networkConnector uri="static:(tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" />', "`n", "          </networkConnectors>")  )
+    $hubMqConfigs[1].NetworkConnectors = ( -Join ("<networkConnectors>", "`n", '            <networkConnector uri="static:(tcp://127.0.0.1:61716,tcp://127.0.0.1:61717,tcp://127.0.0.1:61718)" duplex="true" updateClusterClients="true" updateClusterClientsOnRemove="true" rebalanceClusterClients="true" />', "`n", "          </networkConnectors>")  )
     $hubMqConfigs[1].JettyPort = 8172
     $hubMqConfigs[1].TemplatePath = $templatePath
 
